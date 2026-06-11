@@ -1,0 +1,44 @@
+{
+  "name": "mobtrace",
+  "version": "0.0.0",
+  "description": "Diff-aware mobile regression evidence and diagnosis for coding agents.",
+  "type": "module",
+  "bin": {
+    "mobtrace": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "npm@10.9.4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fikrilal/mobtrace.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fikrilal/mobtrace/issues"
+  },
+  "homepage": "https://github.com/fikrilal/mobtrace#readme",
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --target node22 --platform node --clean --dts --sourcemap --no-splitting",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "vitest run",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "@types/node": "^22.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
+  }
+}
