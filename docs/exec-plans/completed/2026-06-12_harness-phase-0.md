@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: completed
+Status: Completed
 Risk class: medium
 Related issue/PR: N/A
 

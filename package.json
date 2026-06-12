@@ -29,7 +29,11 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "test": "vitest run",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "verify:project-map": "node scripts/verify-project-map.ts",
+    "verify:package": "node scripts/verify-package-smoke.ts",
+    "verify:gates": "node scripts/verify-gates.ts",
+    "verify:full": "npm run verify && npm run verify:project-map && npm run verify:package && npm run verify:gates"
   },
   "dependencies": {
     "commander": "^15.0.0"

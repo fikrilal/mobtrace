@@ -2,7 +2,7 @@
 
 Date: YYYY-MM-DD
 Owner: <name>
-Status: active
+Status: Active
 Risk class: low | medium | high
 Related issue/PR: <link or N/A>
 
@@ -48,7 +48,7 @@ List exact commands and outcomes.
 npm run verify
 ```
 
-For non-trivial changes after Harness Phase 1:
+For non-trivial changes:
 
 ```bash
 npm run verify:full

@@ -25,6 +25,12 @@ Run the canonical local verification:
 npm run verify
 ```
 
+For non-trivial changes, run the full local harness:
+
+```bash
+npm run verify:full
+```
+
 Build and invoke the CLI:
 
 ```bash

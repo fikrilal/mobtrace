@@ -81,8 +81,11 @@ Canonical gate:
 npm run verify
 ```
 
-For non-trivial changes, run `npm run verify:full` after Harness Phase 1
-implements it.
+For non-trivial changes, run:
+
+```bash
+npm run verify:full
+```
 
 Add targeted contract, integration, package, or runtime checks when the
 canonical gate does not prove the acceptance criteria.

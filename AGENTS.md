@@ -70,9 +70,11 @@ Canonical local gate:
 npm run verify
 ```
 
-For non-trivial changes, use `npm run verify:full` once Harness Phase 1
-implements it. Until then, run `npm run verify` and any relevant targeted
-checks.
+For non-trivial changes, run:
+
+```bash
+npm run verify:full
+```
 
 Never claim a check passed unless it was actually run. Record skipped checks
 and their reasons.

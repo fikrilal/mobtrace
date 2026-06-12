@@ -45,15 +45,15 @@ Current enforcement lives in:
 - `package.json`
 - tests under `test/`
 
-## Planned Full Gate
+## Full Harness Gate
 
-Harness Phase 1 will add:
+Harness Phase 1 provides:
 
 ```bash
 npm run verify:full
 ```
 
-It should compose repository-native checks for:
+It composes repository-native checks for:
 
 - canonical verification
 - documentation and project-map drift
@@ -61,7 +61,15 @@ It should compose repository-native checks for:
 - isolated package installation and binary smoke
 - focused gate-honesty checks
 
-It is required for non-trivial changes after implementation.
+It is required for non-trivial changes.
+
+Targeted commands:
+
+```bash
+npm run verify:project-map
+npm run verify:package
+npm run verify:gates
+```
 
 ## Gate Honesty
 

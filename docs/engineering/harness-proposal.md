@@ -482,13 +482,11 @@ command transcript.
 
 Important gates must be proven capable of failing.
 
-Initial candidates:
+Initial scope:
 
-- format check rejects malformed formatting
-- lint rejects a known lint violation
-- type check rejects a known type error
-- package smoke rejects a missing executable or invalid package entry
-- documentation drift rejects a broken required link
+- the composed type-check gate rejects a known type error
+- package smoke rejects a missing executable
+- documentation drift rejects a missing indexed contract
 
 Gate-honesty checks should:
 

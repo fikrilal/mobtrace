@@ -74,8 +74,8 @@ deterministic pass and failure scenarios.
 
 - source tests live under `test/`
 - fixtures should live near the tests that own them
-- shared public-contract fixtures may use a dedicated `test/fixtures/`
-  hierarchy when repetition appears
+- shared public-contract fixtures may use a dedicated fixtures hierarchy under
+  `test/` when repetition appears
 
 Do not create empty fixture directories in advance.
 
@@ -89,7 +89,7 @@ Low risk:
 Medium risk:
 
 - `npm run verify`
-- `npm run verify:full` when available
+- `npm run verify:full`
 - targeted contract or integration tests
 
 High risk:
