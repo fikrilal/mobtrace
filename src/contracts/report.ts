@@ -314,6 +314,24 @@ export const finalResultSchema = z
     });
   });
 
+const doctorCheckStatusSchema = z.enum(["passed", "failed", "skipped"]);
+
+export const doctorCheckSchema = z.object({
+  id: z.string().min(1),
+  required: z.boolean(),
+  remediation: z.string().min(1).nullable(),
+  status: doctorCheckStatusSchema,
+  summary: z.string().min(1),
+});
+
+export const doctorResultSchema = z.object({
+  schemaVersion: z.literal(1),
+  mobtraceVersion: z.string().min(1),
+  generatedAt: rfc3339UtcSchema,
+  ready: z.boolean(),
+  checks: z.array(doctorCheckSchema),
+});
+
 export type PhaseId = z.infer<typeof phaseIdSchema>;
 export type PhaseStatus = z.infer<typeof phaseStatusSchema>;
 export type PhaseError = z.infer<typeof phaseErrorSchema>;
@@ -327,3 +345,5 @@ export type FailureClass = z.infer<typeof failureClassSchema>;
 export type FailureDomain = z.infer<typeof failureDomainSchema>;
 export type EvidenceType = z.infer<typeof evidenceTypeSchema>;
 export type FinalResult = z.infer<typeof finalResultSchema>;
+export type DoctorCheck = z.infer<typeof doctorCheckSchema>;
+export type DoctorResult = z.infer<typeof doctorResultSchema>;

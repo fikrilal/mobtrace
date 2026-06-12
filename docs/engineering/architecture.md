@@ -29,8 +29,19 @@ src/artifacts/
   paths.ts
   run-id.ts
   store.ts
+src/commands/
+  doctor.ts
+  init.ts
+  io.ts
+src/configuration/
+  duration.ts
+  errors.ts
+  load.ts
+  resolve.ts
+  schema.ts
 src/contracts/
   report.ts
+src/cli-error.ts
 src/cli.ts       executable entry point
 src/program.ts   Commander program construction
 src/version.ts   package version
@@ -41,6 +52,7 @@ test/fixtures/
 test/architecture-boundaries.test.ts
 test/artifact-paths.test.ts
 test/artifact-store.test.ts
+test/configuration.test.ts
 test/package-smoke.test.ts
 test/program.test.ts
 test/project-map.test.ts
@@ -48,9 +60,10 @@ test/report-contract.test.ts
 test/run-id.test.ts
 ```
 
-The current codebase implements the CLI foundation, public report schemas, and
-artifact storage. Do not create empty layers in anticipation of future
-milestones.
+The current codebase implements the CLI foundation, public report schemas,
+artifact storage, strict project configuration loading, static command
+resolution, and the `init`/`doctor` commands. Do not create empty layers in
+anticipation of future milestones.
 
 ## Intended Boundaries
 
