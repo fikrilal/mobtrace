@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: Active
+Status: Completed
 Risk class: medium
 Related issue/PR: N/A
 
@@ -53,10 +53,10 @@ Git source evidence capture, or hook execution.
 - [x] Commit 1: add fake executable tests for stdout/stderr, non-zero exit,
       launch failure, timeout, signal, and redaction.
 - [x] Commit 1: update architecture map and verify.
-- [ ] Commit 2: add Git source capture.
-- [ ] Commit 2: add hook execution and output parsing.
-- [ ] Commit 2: add Git and hook tests.
-- [ ] Commit 2: complete docs and run full verification.
+- [x] Commit 2: add Git source capture.
+- [x] Commit 2: add hook execution and output parsing.
+- [x] Commit 2: add Git and hook tests.
+- [x] Commit 2: complete docs and run full verification.
 
 ## Decision Log
 
@@ -82,6 +82,17 @@ Outcome after commit 1 implementation on 2026-06-12: passed.
 - package smoke verification passed
 - gate-honesty verification passed
 
+Outcome after commit 2 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 12 test files passed, 66 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
 ## Runtime Evidence
 
 Not required until Maestro journey execution exists.
@@ -95,9 +106,17 @@ Not required until Maestro journey execution exists.
 
 ## Completion Notes
 
-Pending.
+Implemented Milestone 3 foundations:
+
+- centralized subprocess executor with redaction
+- Git source evidence capture with source artifacts
+- hook lifecycle execution with output protocol parsing
+- cleanup execution after preparation failure and after attempted journeys
+- focused tests for process, source, and hook behavior
+
+Maestro journey orchestration remains deferred to Milestone 4.
 
 ## Follow-Ups
 
-- [ ] Upgrade `doctor` to use process-backed Git/Maestro version checks after
-      the process boundary is committed.
+- [ ] Upgrade `doctor` to use process-backed Git/Maestro version checks during
+      the Maestro vertical slice.
