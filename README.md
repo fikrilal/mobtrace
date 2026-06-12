@@ -3,8 +3,8 @@
 MobTrace is a diff-aware mobile regression evidence and diagnosis CLI for
 coding agents.
 
-The project is experimental. Its public behavior is being developed from the
-contracts in `docs/`.
+The project is experimental. Start at `docs/README.md` for product, contract,
+engineering, and execution-plan documentation.
 
 ## Requirements
 
@@ -19,7 +19,7 @@ Install dependencies:
 npm ci
 ```
 
-Run the complete local verification:
+Run the canonical local verification:
 
 ```bash
 npm run verify

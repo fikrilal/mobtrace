@@ -17,7 +17,7 @@ This document defines the MobTrace v0.1 contract for:
 - report regeneration and compatibility
 
 It does not define command syntax or project configuration. Those are defined
-in `docs/cli-contract.md` and `docs/configuration-contract.md`.
+in `docs/contracts/cli.md` and `docs/contracts/configuration.md`.
 
 ## Design Goals
 
@@ -394,7 +394,7 @@ Meaning:
 - `processing-failed`
 - `interrupted`
 
-The value follows the exit-code precedence in `docs/cli-contract.md`.
+The value follows the exit-code precedence in `docs/contracts/cli.md`.
 
 Secondary failures remain visible in `phases`.
 

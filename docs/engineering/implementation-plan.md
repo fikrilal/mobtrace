@@ -119,7 +119,7 @@ operations.
 
 ### Exit Criteria
 
-- generated lifecycle manifests conform to `docs/report-contract.md`
+- generated lifecycle manifests conform to `docs/contracts/report.md`
 - filesystem failures produce typed internal errors
 - artifact operations are isolated from CLI rendering
 
@@ -265,7 +265,7 @@ diagnosis.
 
 ### Required Behavior
 
-- all generated JSON follows `docs/report-contract.md`
+- all generated JSON follows `docs/contracts/report.md`
 - `--json` emits one valid JSON object and no prose to stdout
 - `report` does not inherit the historical journey exit code
 - report regeneration preserves lifecycle facts
@@ -415,7 +415,7 @@ Record:
 - the complete CLI, configuration, and report contracts are demonstrated
 - measured reports provide materially better first diagnosis than raw Maestro
 - product metrics support continuing toward a public v0.1 release
-- kill criteria in `docs/product.md` have been explicitly evaluated
+- kill criteria in `docs/product/product.md` have been explicitly evaluated
 
 ## Milestone 9: Public v0.1 Release
 
@@ -443,32 +443,10 @@ Publish a small, supportable first release after the product thesis is proven.
 
 ## Execution Plan Contract
 
-Each implementation execution plan should contain:
+Use the lifecycle and canonical template defined by:
 
-```markdown
-# <Work Item>
-
-Status: Proposed
-Milestone: <number and name>
-
-## Objective
-
-## Contract References
-
-## Current State
-
-## Scope
-
-## Out Of Scope
-
-## Implementation Steps
-
-## Tests And Verification
-
-## Risks And Rollback
-
-## Completion Record
-```
+- `docs/exec-plans/README.md`
+- `docs/exec-plans/_template.md`
 
 Execution-plan rules:
 
@@ -491,4 +469,3 @@ execution, report generation, or diagnosis.
 That foundation is intentionally narrow. It gives every later agent a stable
 toolchain and verification command without prematurely coupling the codebase to
 an untested internal architecture.
-

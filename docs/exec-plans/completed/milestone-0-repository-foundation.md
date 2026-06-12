@@ -10,9 +10,9 @@ test, package, and invoke the MobTrace CLI.
 
 ## Contract References
 
-- `docs/tech-stack.md`
-- `docs/implementation-plan.md`, Milestone 0
-- `docs/cli-contract.md`, global `--help` and `--version` behavior
+- `docs/engineering/tech-stack.md`
+- `docs/engineering/implementation-plan.md`, Milestone 0
+- `docs/contracts/cli.md`, global `--help` and `--version` behavior
 
 ## Current State
 

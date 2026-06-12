@@ -6,7 +6,7 @@ Status: Proposed
 
 This document proposes the initial engineering design for MobTrace.
 
-It translates the product requirements in `docs/product.md` into a system
+It translates the product requirements in `docs/product/product.md` into a system
 boundary and implementation approach. It does not define the final command
 syntax, configuration schema, or report schema. Those are separate public
 contracts to be designed after this proposal is accepted.
