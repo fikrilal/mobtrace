@@ -23,16 +23,34 @@ milestones should establish without prescribing one directory per concept.
 
 ```text
 src/
-  cli.ts       executable entry point
-  program.ts   Commander program construction
-  version.ts   package version
+src/artifacts/
+  atomic-write.ts
+  errors.ts
+  paths.ts
+  run-id.ts
+  store.ts
+src/contracts/
+  report.ts
+src/cli.ts       executable entry point
+src/program.ts   Commander program construction
+src/version.ts   package version
 
 test/
-  program.test.ts
+test/fixtures/
+  report/
+test/architecture-boundaries.test.ts
+test/artifact-paths.test.ts
+test/artifact-store.test.ts
+test/package-smoke.test.ts
+test/program.test.ts
+test/project-map.test.ts
+test/report-contract.test.ts
+test/run-id.test.ts
 ```
 
-The current codebase implements only the CLI foundation. Do not create empty
-layers in anticipation of future milestones.
+The current codebase implements the CLI foundation, public report schemas, and
+artifact storage. Do not create empty layers in anticipation of future
+milestones.
 
 ## Intended Boundaries
 

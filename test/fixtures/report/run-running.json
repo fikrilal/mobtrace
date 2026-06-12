@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260611T101530Z-a13f09",
+  "state": "running",
+  "createdAt": "2026-06-11T10:15:30.123Z",
+  "updatedAt": "2026-06-11T10:15:31.456Z",
+  "completedAt": null,
+  "mobtraceVersion": "0.1.0",
+  "project": {
+    "sourceControl": null
+  },
+  "flow": {
+    "name": "login",
+    "path": ".maestro/flows/login.yaml",
+    "resolution": "configured"
+  },
+  "device": {
+    "id": "emulator-5554"
+  },
+  "phases": [],
+  "futureField": "ignored"
+}

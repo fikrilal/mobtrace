@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260611T101530Z-a13f09",
+  "mobtraceVersion": "0.1.0",
+  "createdAt": "2026-06-11T10:15:30.123Z",
+  "completedAt": "2026-06-11T10:16:20.000Z",
+  "durationMs": 49877,
+  "generatedAt": "2026-06-11T10:16:20.000Z",
+  "generatedByVersion": "0.1.0",
+  "sourceRunCompletedAt": "2026-06-11T10:16:20.000Z",
+  "status": "failed",
+  "outcome": "journey-failed",
+  "exitCode": 1,
+  "flow": {
+    "name": "login",
+    "path": ".maestro/flows/login.yaml",
+    "resolution": "configured",
+    "runner": "maestro"
+  },
+  "device": {
+    "id": "emulator-5554",
+    "platform": "android",
+    "available": true
+  },
+  "source": {
+    "available": true,
+    "branch": "feature/profile",
+    "head": "4f81a7c421eed3a4ae70d72a5db8f0cc5a9c8d11",
+    "baseline": "origin/main",
+    "baselineCommit": "55cacbf81f9d66e32429781d981e58bd5bb2aa40",
+    "dirty": true,
+    "changedFileCount": 2,
+    "untrackedFileCount": 1,
+    "metadata": "source/metadata.json",
+    "changedFiles": "source/changed-files.json",
+    "diff": "source/diff.patch"
+  },
+  "journey": {
+    "status": "failed",
+    "startedAt": "2026-06-11T10:15:35.000Z",
+    "endedAt": "2026-06-11T10:16:17.000Z",
+    "durationMs": 42000,
+    "exitCode": 1,
+    "timedOut": false,
+    "command": {
+      "executable": "maestro",
+      "arguments": ["test", "<flow>"]
+    },
+    "result": "runner/result.json",
+    "stdout": "runner/stdout.log",
+    "stderr": "runner/stderr.log"
+  },
+  "phases": [
+    {
+      "id": "journey",
+      "status": "failed",
+      "startedAt": "2026-06-11T10:15:35.000Z",
+      "endedAt": "2026-06-11T10:16:17.000Z",
+      "durationMs": 42000,
+      "exitCode": 1,
+      "timedOut": false,
+      "error": {
+        "code": "runner-exit-nonzero",
+        "message": "Maestro reported a failed journey."
+      },
+      "evidence": ["runner-result"]
+    }
+  ],
+  "failure": {
+    "summary": "Expected element was not visible.",
+    "failedCommand": "assertVisible",
+    "failedSelector": "home_screen",
+    "message": "Element not found: home_screen"
+  },
+  "diagnosis": {
+    "failureClass": "selector-mismatch",
+    "failureDomain": "test-harness",
+    "matchedSignatures": [
+      {
+        "id": "assertion-false-missing-id",
+        "action": "Compare the selector with the final view hierarchy.",
+        "evidence": ["runner-result"]
+      }
+    ],
+    "suspiciousChanges": [
+      {
+        "rank": 1,
+        "path": ".maestro/flows/login.yaml",
+        "reasons": [
+          {
+            "code": "changed-selector",
+            "message": "The failed selector changed in this flow.",
+            "evidence": ["source-diff", "runner-result"]
+          }
+        ]
+      }
+    ],
+    "suggestedAction": "Compare the selector with the final view hierarchy."
+  },
+  "evidence": [
+    {
+      "id": "runner-result",
+      "type": "runner-result",
+      "path": "runner/result.json",
+      "mediaType": "application/json",
+      "description": "Normalized Maestro result.",
+      "redacted": true,
+      "sensitive": false
+    },
+    {
+      "id": "runner-stdout",
+      "type": "runner-log",
+      "path": "runner/stdout.log",
+      "mediaType": "text/plain",
+      "description": "Original Maestro standard output.",
+      "redacted": false,
+      "sensitive": true
+    }
+  ],
+  "reports": {
+    "markdown": "report.md",
+    "json": "result.json"
+  },
+  "futureField": {
+    "compatible": true
+  }
+}

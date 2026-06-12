@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260611T101530Z-b24e10",
+  "state": "partial",
+  "createdAt": "2026-06-11T10:15:30.123Z",
+  "updatedAt": "2026-06-11T10:16:20.000Z",
+  "completedAt": "2026-06-11T10:16:20.000Z",
+  "mobtraceVersion": "0.1.0",
+  "project": {
+    "sourceControl": "git"
+  },
+  "flow": {
+    "name": null,
+    "path": ".maestro/flows/login.yaml",
+    "resolution": "path"
+  },
+  "device": {
+    "id": null
+  },
+  "phases": [
+    {
+      "id": "validation",
+      "status": "passed",
+      "startedAt": "2026-06-11T10:15:30.123Z",
+      "endedAt": "2026-06-11T10:15:31.000Z",
+      "durationMs": 877,
+      "exitCode": null,
+      "timedOut": false,
+      "error": null,
+      "evidence": []
+    },
+    {
+      "id": "journey",
+      "status": "interrupted",
+      "startedAt": "2026-06-11T10:15:35.000Z",
+      "endedAt": "2026-06-11T10:16:20.000Z",
+      "durationMs": 45000,
+      "exitCode": null,
+      "timedOut": false,
+      "error": {
+        "code": "user-interrupted",
+        "message": "The journey was interrupted."
+      },
+      "evidence": ["runner-stdout"]
+    }
+  ]
+}

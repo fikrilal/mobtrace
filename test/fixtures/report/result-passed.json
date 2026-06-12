@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "runId": "20260611T101530Z-a13f09",
+  "mobtraceVersion": "0.1.0",
+  "createdAt": "2026-06-11T10:15:30.123Z",
+  "completedAt": "2026-06-11T10:16:20.000Z",
+  "durationMs": 49877,
+  "generatedAt": "2026-06-11T10:16:20.000Z",
+  "generatedByVersion": "0.1.0",
+  "sourceRunCompletedAt": "2026-06-11T10:16:20.000Z",
+  "status": "passed",
+  "outcome": "verified-pass",
+  "exitCode": 0,
+  "flow": {
+    "name": "login",
+    "path": ".maestro/flows/login.yaml",
+    "resolution": "configured",
+    "runner": "maestro"
+  },
+  "device": {
+    "id": "emulator-5554",
+    "platform": "android",
+    "available": true
+  },
+  "source": {
+    "available": false,
+    "reason": "not-a-git-worktree"
+  },
+  "journey": {
+    "status": "passed",
+    "startedAt": "2026-06-11T10:15:35.000Z",
+    "endedAt": "2026-06-11T10:16:17.000Z",
+    "durationMs": 42000,
+    "exitCode": 0,
+    "timedOut": false,
+    "command": {
+      "executable": "maestro",
+      "arguments": ["test", "<flow>"]
+    },
+    "result": "runner/result.json",
+    "stdout": "runner/stdout.log",
+    "stderr": "runner/stderr.log"
+  },
+  "phases": [
+    {
+      "id": "journey",
+      "status": "passed",
+      "startedAt": "2026-06-11T10:15:35.000Z",
+      "endedAt": "2026-06-11T10:16:17.000Z",
+      "durationMs": 42000,
+      "exitCode": 0,
+      "timedOut": false,
+      "error": null,
+      "evidence": ["runner-result"]
+    }
+  ],
+  "failure": {
+    "summary": null,
+    "failedCommand": null,
+    "failedSelector": null,
+    "message": null
+  },
+  "diagnosis": {
+    "failureClass": "none",
+    "failureDomain": "none",
+    "matchedSignatures": [],
+    "suspiciousChanges": [],
+    "suggestedAction": "No failure detected. Keep this run as baseline evidence."
+  },
+  "evidence": [
+    {
+      "id": "run-manifest",
+      "type": "run-manifest",
+      "path": "run.json",
+      "mediaType": "application/json",
+      "description": "Run lifecycle manifest.",
+      "redacted": true,
+      "sensitive": false
+    }
+  ],
+  "reports": {
+    "markdown": "report.md",
+    "json": "result.json"
+  }
+}
