@@ -41,6 +41,9 @@ src/configuration/
   schema.ts
 src/contracts/
   report.ts
+src/process/
+  execute.ts
+  redaction.ts
 src/cli-error.ts
 src/cli.ts       executable entry point
 src/program.ts   Commander program construction
@@ -54,6 +57,7 @@ test/artifact-paths.test.ts
 test/artifact-store.test.ts
 test/configuration.test.ts
 test/package-smoke.test.ts
+test/process-execution.test.ts
 test/program.test.ts
 test/project-map.test.ts
 test/report-contract.test.ts
@@ -62,8 +66,8 @@ test/run-id.test.ts
 
 The current codebase implements the CLI foundation, public report schemas,
 artifact storage, strict project configuration loading, static command
-resolution, and the `init`/`doctor` commands. Do not create empty layers in
-anticipation of future milestones.
+resolution, the `init`/`doctor` commands, and the product subprocess execution
+boundary. Do not create empty layers in anticipation of future milestones.
 
 ## Intended Boundaries
 
