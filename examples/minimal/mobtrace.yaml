@@ -1,0 +1,13 @@
+version: 1
+maestro:
+  executable: maestro
+artifacts:
+  root: .mobtrace/runs
+defaults:
+  baseline: HEAD
+flows:
+  login:
+    path: .maestro/flows/login.yaml
+    owns:
+      - lib/features/auth/
+      - lib/navigation/

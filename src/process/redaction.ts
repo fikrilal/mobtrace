@@ -15,7 +15,15 @@ export class Redactor {
   readonly #values: readonly string[];
 
   constructor(options: RedactionOptions = {}) {
-    this.#patterns = options.patterns ?? [];
+    this.#patterns = (options.patterns ?? []).map((pattern) => ({
+      ...pattern,
+      regex: new RegExp(
+        pattern.regex.source,
+        pattern.regex.flags.includes("g")
+          ? pattern.regex.flags
+          : `${pattern.regex.flags}g`,
+      ),
+    }));
     this.#replacement = options.replacement ?? "[REDACTED]";
     this.#values = (options.values ?? []).filter((value) => value.length > 0);
   }

@@ -1,13 +1,23 @@
 {
   "name": "mobtrace",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Diff-aware mobile regression evidence and diagnosis for coding agents.",
   "type": "module",
   "bin": {
-    "mobtrace": "./dist/cli.js"
+    "mobtrace": "dist/cli.js"
   },
   "files": [
+    "CHANGELOG.md",
     "dist",
+    "docs/README.md",
+    "docs/contracts",
+    "docs/guides",
+    "docs/engineering/mobile-core-kit-integration.md",
+    "docs/engineering/platform-support.md",
+    "docs/engineering/product-validation.md",
+    "docs/engineering/release-checklist.md",
+    "docs/product/product.md",
+    "examples",
     "README.md"
   ],
   "engines": {
@@ -46,5 +56,8 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "esbuild": "0.28.1"
   }
 }

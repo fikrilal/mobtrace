@@ -148,6 +148,10 @@ artifacts:
 - Relative paths resolve from the project root.
 - The directory may be created by MobTrace.
 - The path must be writable before a run starts.
+- When the artifact root is inside a Git worktree, the artifact root should be
+  ignored by Git. `mobtrace init` adds `.mobtrace/` for the default artifact
+  root, and `mobtrace doctor` warns when the resolved artifact root is not
+  ignored.
 - A CLI `--artifacts` value overrides the generated run location for that
   invocation.
 

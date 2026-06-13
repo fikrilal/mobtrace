@@ -12,6 +12,12 @@ unless explicitly adopted.
 - `docs/product/product.md` - user problem, scope, differentiation, metrics,
   and kill criteria
 
+## Guides
+
+- `docs/guides/usage.md` - install, configure, run, and inspect MobTrace
+- `docs/guides/troubleshooting.md` - common failures and first inspections
+- `docs/guides/releasing.md` - manual package release and publish flow
+
 ## Public Contracts
 
 - `docs/contracts/cli.md` - commands, streams, options, and exit codes
@@ -30,6 +36,13 @@ unless explicitly adopted.
 - `docs/engineering/guardrails.md` - mechanical enforcement strategy
 - `docs/engineering/testing-strategy.md` - test layers and evidence expectations
 - `docs/engineering/parallel-agent-workflow.md` - concurrent agent isolation
+- `docs/engineering/platform-support.md` - supported hosts, reliability
+  evidence, and local-only data boundary
+- `docs/engineering/product-validation.md` - Milestone 8 fixture evidence,
+  metrics, and kill-criteria evaluation
+- `docs/engineering/mobile-core-kit-integration.md` - reference dogfood
+  integration for the original mobile harness
+- `docs/engineering/release-checklist.md` - public v0.1 readiness checklist
 
 ## Execution Plans
 

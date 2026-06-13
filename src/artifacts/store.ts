@@ -228,6 +228,40 @@ export class ArtifactStore {
     return toRunRelativePath(directory, targetPath);
   }
 
+  async readText(runId: string, portablePath: string): Promise<string> {
+    await this.readManifest(runId);
+    const directory = resolveRunDirectory(this.artifactRoot, runId);
+    const targetPath = resolveRunArtifactPath(directory, portablePath);
+    try {
+      return await readFile(targetPath, "utf8");
+    } catch (error) {
+      throw new ArtifactStoreError(
+        "read-failed",
+        `Could not read ${portablePath} for run ${runId}`,
+        { cause: error, path: targetPath },
+      );
+    }
+  }
+
+  async readJson(runId: string, portablePath: string): Promise<unknown> {
+    const targetPath = resolveRunArtifactPath(
+      resolveRunDirectory(this.artifactRoot, runId),
+      portablePath,
+    );
+    try {
+      return JSON.parse(await this.readText(runId, portablePath));
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new ArtifactStoreError(
+          "read-failed",
+          `Invalid JSON in ${portablePath} for run ${runId}`,
+          { cause: error, path: targetPath },
+        );
+      }
+      throw error;
+    }
+  }
+
   async writeJson(
     runId: string,
     portablePath: string,

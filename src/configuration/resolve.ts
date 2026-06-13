@@ -5,7 +5,11 @@ import { ConfigurationError } from "./errors.js";
 import type { ConfigurationDiscovery } from "./load.js";
 import { resolveProjectPath } from "./load.js";
 import { parseDuration, type ResolvedDuration } from "./duration.js";
-import type { ConfiguredEnvironment, MobtraceConfig } from "./schema.js";
+import type {
+  ConfiguredEnvironment,
+  ConfiguredHooks,
+  MobtraceConfig,
+} from "./schema.js";
 
 export interface FlowResolutionOptions {
   readonly baseline?: string | undefined;
@@ -26,10 +30,12 @@ export interface ResolvedFlowInvocation {
   readonly device: string | undefined;
   readonly environment: ReadonlyMap<string, ResolvedEnvironmentEntry>;
   readonly flowName: string | null;
+  readonly flowHooks: ConfiguredHooks | undefined;
   readonly flowPath: string;
   readonly flowPathRelative: string;
   readonly maestroExecutable: string;
   readonly ownership: readonly string[];
+  readonly projectHooks: ConfiguredHooks | undefined;
   readonly resolution: "configured" | "path";
   readonly timeout: ResolvedDuration | undefined;
 }
@@ -62,10 +68,12 @@ export async function resolveFlowInvocation(
         options.device ?? configuredFlow.device ?? config?.defaults?.device,
       environment: flowEnvironment,
       flowName: options.flow,
+      flowHooks: configuredFlow.hooks,
       flowPath: resolveProjectPath(projectRoot, configuredFlow.path),
       flowPathRelative: configuredFlow.path,
       maestroExecutable: resolveMaestroExecutable(projectRoot, config),
       ownership: configuredFlow.owns ?? [],
+      projectHooks: config?.hooks,
       resolution: "configured",
       timeout: resolveTimeout(
         config?.defaults?.timeout,
@@ -94,10 +102,12 @@ export async function resolveFlowInvocation(
       options.processEnv ?? process.env,
     ),
     flowName: null,
+    flowHooks: undefined,
     flowPath: directFlowPath,
     flowPathRelative: toProjectRelative(projectRoot, directFlowPath),
     maestroExecutable: resolveMaestroExecutable(projectRoot, config),
     ownership: [],
+    projectHooks: config?.hooks,
     resolution: "path",
     timeout: resolveTimeout(config?.defaults?.timeout, undefined),
   });

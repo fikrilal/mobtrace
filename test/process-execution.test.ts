@@ -96,6 +96,24 @@ describe("process execution", () => {
     expect(result.signal).not.toBeNull();
   });
 
+  it("terminates an active process when execution is interrupted", async () => {
+    const root = await createTempDir();
+    const executable = await createExecutable(root, "slow", "sleep 5");
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 20);
+
+    const result = await executeProcess({
+      abortSignal: controller.signal,
+      executable,
+      killAfterMs: 10,
+    });
+
+    expect(result.status).toBe("interrupted");
+    expect(result.interrupted).toBe(true);
+    expect(result.timedOut).toBe(false);
+    expect(result.signal).not.toBeNull();
+  });
+
   it("records signal termination", async () => {
     const root = await createTempDir();
     const executable = await createExecutable(
@@ -109,6 +127,34 @@ describe("process execution", () => {
     expect(result.status).toBe("signaled");
     expect(result.exitCode).toBeNull();
     expect(result.signal).toBe("SIGTERM");
+  });
+
+  it("bounds streams while retaining startup and failure context", async () => {
+    const root = await createTempDir();
+    const executable = await createExecutable(
+      root,
+      "large-output",
+      'printf "START-1234567890-END"',
+    );
+
+    const result = await executeProcess({
+      executable,
+      maxOutputBytes: 10,
+    });
+
+    expect(result.stdoutBytes).toBe(20);
+    expect(result.stdoutTruncated).toBe(true);
+    expect(result.stdout).toContain("START");
+    expect(result.stdout).toContain("0-END");
+    expect(result.stdout).toContain("retained 10 of 20 bytes");
+    expect(result.stderrBytes).toBe(0);
+    expect(result.stderrTruncated).toBe(false);
+  });
+
+  it("rejects invalid output limits before spawning", async () => {
+    await expect(
+      executeProcess({ executable: "unused", maxOutputBytes: 0 }),
+    ).rejects.toThrow("positive safe integer");
   });
 
   it("redacts command summaries and stream display copies", async () => {
@@ -146,5 +192,15 @@ describe("redaction", () => {
     });
 
     expect(redactor.redact("token=secret")).toBe("[REDACTED]");
+  });
+
+  it("redacts every occurrence even when a configured pattern is not global", () => {
+    const redactor = new Redactor({
+      patterns: [{ name: "token", regex: /token=[^\s]+/u }],
+    });
+
+    expect(redactor.redact("token=one token=two")).toBe(
+      "[REDACTED] [REDACTED]",
+    );
   });
 });

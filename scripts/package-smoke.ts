@@ -21,10 +21,24 @@ interface PackResult {
 }
 
 const EXPECTED_PACKAGE_FILES = new Set([
+  "CHANGELOG.md",
   "README.md",
   "dist/cli.d.ts",
   "dist/cli.js",
   "dist/cli.js.map",
+  "docs/README.md",
+  "docs/contracts/cli.md",
+  "docs/contracts/configuration.md",
+  "docs/contracts/report.md",
+  "docs/guides/releasing.md",
+  "docs/guides/troubleshooting.md",
+  "docs/guides/usage.md",
+  "docs/engineering/mobile-core-kit-integration.md",
+  "docs/engineering/platform-support.md",
+  "docs/engineering/product-validation.md",
+  "docs/engineering/release-checklist.md",
+  "docs/product/product.md",
+  "examples/minimal/mobtrace.yaml",
   "package.json",
 ]);
 
