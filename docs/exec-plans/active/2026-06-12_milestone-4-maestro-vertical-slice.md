@@ -55,8 +55,8 @@ verify command, runner integration, result generation, or compact output.
 - [x] Commit 1: add verify lifecycle orchestration with fake journey runner.
 - [x] Commit 1: add lifecycle phase and exit-precedence tests.
 - [x] Commit 1: update architecture map and verify.
-- [ ] Commit 2: add Maestro runner integration and fake Maestro tests.
-- [ ] Commit 2: wire `verify` command to runner execution.
+- [x] Commit 2: add Maestro runner integration and fake Maestro tests.
+- [ ] Commit 3: wire `verify` command to runner execution.
 - [ ] Commit 3: add initial result/report generation and compact output.
 - [ ] Commit 3: add CLI stdout/stderr/exit tests.
 - [ ] Commit 3: complete docs and run full verification.
@@ -80,6 +80,17 @@ Outcome after commit 1 implementation on 2026-06-12: passed.
 - lint passed
 - type check passed
 - 13 test files passed, 71 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
+Outcome after commit 2 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 14 test files passed, 74 tests passed
 - build passed
 - project-map verification passed
 - package smoke verification passed

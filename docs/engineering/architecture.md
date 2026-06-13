@@ -46,6 +46,8 @@ src/hooks/
 src/process/
   execute.ts
   redaction.ts
+src/runner/
+  maestro.ts
 src/source/
   git.ts
 src/verify/
@@ -63,6 +65,7 @@ test/artifact-paths.test.ts
 test/artifact-store.test.ts
 test/configuration.test.ts
 test/hook-lifecycle.test.ts
+test/maestro-runner.test.ts
 test/package-smoke.test.ts
 test/process-execution.test.ts
 test/program.test.ts
