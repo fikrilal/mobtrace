@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: Active
+Status: Completed
 Risk class: high
 Related issue/PR: N/A
 
@@ -58,13 +58,13 @@ runtime semantics and verification.
 
 ## Implementation Checklist
 
-- [ ] Enforce built-in and configured redaction for generated outputs.
-- [ ] Add bounded subprocess output capture with truncation metadata.
-- [ ] Add interruption propagation and partial-run finalization.
-- [ ] Harden malformed optional-artifact and hook-output handling.
-- [ ] Add platform support checks and reliability/duration evidence.
-- [ ] Run targeted tests and `npm run verify:full`.
-- [ ] Move this plan to `docs/exec-plans/completed/`.
+- [x] Enforce built-in and configured redaction for generated outputs.
+- [x] Add bounded subprocess output capture with truncation metadata.
+- [x] Add interruption propagation and partial-run finalization.
+- [x] Harden malformed optional-artifact and hook-output handling.
+- [x] Add platform support checks and reliability/duration evidence.
+- [x] Run targeted tests and `npm run verify:full`.
+- [x] Move this plan to `docs/exec-plans/completed/`.
 
 ## Decision Log
 
@@ -81,25 +81,32 @@ runtime semantics and verification.
 
 ## Verification
 
-Planned checks:
+Completed checks:
 
 ```bash
-npm run test -- test/process-execution.test.ts
-npm run test -- test/verify-command.test.ts test/report-command.test.ts
-npm run test -- test/verify-lifecycle.test.ts test/hook-lifecycle.test.ts
 npm run verify:full
 ```
 
-Record checks not run and why.
+Result: passed on 2026-06-12. The canonical gate completed formatting, lint,
+type-checking, 126 tests across 22 files, the production build, project-map
+verification, isolated package installation and binary smoke, and gate-honesty
+checks.
+
+Targeted redaction, large-output, interruption, malformed-evidence, platform,
+and repeated-run tests also passed before the full gate.
 
 ## Runtime Evidence
 
-- Environment: Linux, Node.js 22 baseline.
-- Executed scenario: pending.
-- Artifact paths: pending.
-- Notes: macOS execution is unavailable in the current local environment, so
-  macOS must not be described as verified unless a separate automated runner
-  supplies evidence.
+- Environment: Ubuntu Linux 24.04-derived host, kernel 6.17.0-35-generic,
+  Node.js v22.22.0, npm 10.9.4.
+- Executed scenario: credential redaction through a fake Maestro failure;
+  bounded large streams; timeout and abort of disposable child processes;
+  cleanup after an interrupted journey; malformed hook output; corrupt
+  optional source-ranking evidence; 20 repeated subprocess executions.
+- Artifact paths: tests used isolated temporary runs and removed them after
+  assertions.
+- Notes: macOS platform behavior is contract-tested but was not executed on a
+  macOS host in this environment. Runtime verification is tracked separately.
 
 ## Risks And Mitigations
 
@@ -117,8 +124,14 @@ Record checks not run and why.
 
 ## Completion Notes
 
-Pending.
+Milestone 7 shipped in five focused implementation commits. Generated outputs
+apply built-in and configured redaction, while raw logs and diffs remain
+explicitly sensitive. Process capture is bounded with retained head and tail
+context. Interruptions produce partial, reportable runs and still attempt
+cleanup. Malformed optional inputs degrade diagnosis without erasing core
+facts. Platform and local-only boundaries are documented and mechanically
+checked.
 
 ## Follow-Ups
 
-- [ ] Add unresolved debt to `docs/exec-plans/tech-debt-tracker.md`.
+- [x] Add unresolved debt to `docs/exec-plans/tech-debt-tracker.md`.
