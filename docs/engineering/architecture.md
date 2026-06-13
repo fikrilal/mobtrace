@@ -46,6 +46,8 @@ src/hooks/
 src/process/
   execute.ts
   redaction.ts
+src/report/
+  initial.ts
 src/runner/
   maestro.ts
 src/source/
@@ -73,6 +75,7 @@ test/project-map.test.ts
 test/report-contract.test.ts
 test/run-id.test.ts
 test/source-git.test.ts
+test/verify-command.test.ts
 test/verify-lifecycle.test.ts
 ```
 

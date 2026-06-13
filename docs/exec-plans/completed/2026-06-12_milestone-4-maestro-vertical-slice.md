@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: Active
+Status: Completed
 Risk class: medium
 Related issue/PR: N/A
 
@@ -56,10 +56,10 @@ verify command, runner integration, result generation, or compact output.
 - [x] Commit 1: add lifecycle phase and exit-precedence tests.
 - [x] Commit 1: update architecture map and verify.
 - [x] Commit 2: add Maestro runner integration and fake Maestro tests.
-- [ ] Commit 3: wire `verify` command to runner execution.
-- [ ] Commit 3: add initial result/report generation and compact output.
-- [ ] Commit 3: add CLI stdout/stderr/exit tests.
-- [ ] Commit 3: complete docs and run full verification.
+- [x] Commit 3: wire `verify` command to runner execution.
+- [x] Commit 3: add initial result/report generation and compact output.
+- [x] Commit 3: add CLI stdout/stderr/exit tests.
+- [x] Commit 3: complete docs and run full verification.
 
 ## Decision Log
 
@@ -96,6 +96,17 @@ Outcome after commit 2 implementation on 2026-06-12: passed.
 - package smoke verification passed
 - gate-honesty verification passed
 
+Outcome after commit 3 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 15 test files passed, 76 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
 ## Runtime Evidence
 
 Fake Maestro evidence is sufficient for this milestone. Real Maestro smoke can
@@ -112,7 +123,18 @@ be added after the CLI path is stable.
 
 ## Completion Notes
 
-Pending.
+Implemented the first useful Maestro vertical slice:
+
+- verify lifecycle orchestration
+- fake-tested Maestro runner adapter
+- runner stdout, stderr, and result artifacts
+- initial `result.json`
+- initial `report.md`
+- compact verify output
+- `verify --json`
+- CLI exit-code preservation for pass and journey failure
+
+Advanced diagnosis and report regeneration remain deferred.
 
 ## Follow-Ups
 

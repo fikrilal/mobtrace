@@ -4,6 +4,7 @@ import { MobtraceCommandError } from "./cli-error.js";
 import { runDoctorCommand } from "./commands/doctor.js";
 import { runInitCommand } from "./commands/init.js";
 import type { CommandIo } from "./commands/io.js";
+import { runVerifyCommand } from "./commands/verify.js";
 import { MOBTRACE_VERSION } from "./version.js";
 
 export interface ProgramOptions {
@@ -82,6 +83,48 @@ export function createProgram(options: ProgramOptions = {}): Command {
         io,
       );
     });
+
+  program
+    .command("verify")
+    .description("Run one mobile journey and retain evidence.")
+    .requiredOption(
+      "--flow <flow>",
+      "Configured flow name or Maestro flow path.",
+    )
+    .option("--device <id>", "Target device identifier.")
+    .option(
+      "--baseline <git-ref>",
+      "Source revision used for change comparison.",
+    )
+    .option("--artifacts <path>", "Artifact root for this invocation.")
+    .option("--json", "Print only the final machine-readable result.")
+    .action(
+      async (commandOptions: {
+        artifacts?: string;
+        baseline?: string;
+        device?: string;
+        flow: string;
+        json?: boolean;
+      }) => {
+        const globalOptions = program.opts<{
+          config?: string;
+          project?: string;
+        }>();
+
+        await runVerifyCommand(
+          {
+            artifacts: commandOptions.artifacts,
+            baseline: commandOptions.baseline,
+            config: globalOptions.config,
+            device: commandOptions.device,
+            flow: commandOptions.flow,
+            json: commandOptions.json,
+            project: globalOptions.project,
+          },
+          io,
+        );
+      },
+    );
 
   return program;
 }
