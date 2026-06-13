@@ -6,10 +6,24 @@ import {
 } from "../scripts/package-smoke.ts";
 
 const validFiles: readonly PackedFile[] = [
+  { mode: 0o644, path: "CHANGELOG.md" },
   { mode: 0o644, path: "README.md" },
   { mode: 0o644, path: "dist/cli.d.ts" },
   { mode: 0o755, path: "dist/cli.js" },
   { mode: 0o644, path: "dist/cli.js.map" },
+  { mode: 0o644, path: "docs/README.md" },
+  { mode: 0o644, path: "docs/contracts/cli.md" },
+  { mode: 0o644, path: "docs/contracts/configuration.md" },
+  { mode: 0o644, path: "docs/contracts/report.md" },
+  {
+    mode: 0o644,
+    path: "docs/engineering/mobile-core-kit-integration.md",
+  },
+  { mode: 0o644, path: "docs/engineering/platform-support.md" },
+  { mode: 0o644, path: "docs/engineering/product-validation.md" },
+  { mode: 0o644, path: "docs/engineering/release-checklist.md" },
+  { mode: 0o644, path: "docs/product/product.md" },
+  { mode: 0o644, path: "examples/minimal/mobtrace.yaml" },
   { mode: 0o644, path: "package.json" },
 ];
 
@@ -20,7 +34,7 @@ describe("package-content verification", () => {
         {
           bin: { mobtrace: "./dist/cli.js" },
           name: "mobtrace",
-          version: "0.0.0",
+          version: "0.1.0",
         },
         validFiles,
       ),
@@ -35,7 +49,7 @@ describe("package-content verification", () => {
         {
           bin: { mobtrace: "./dist/cli.js" },
           name: "mobtrace",
-          version: "0.0.0",
+          version: "0.1.0",
         },
         files,
       ),
@@ -48,7 +62,7 @@ describe("package-content verification", () => {
         {
           bin: { mobtrace: "./dist/cli.js" },
           name: "mobtrace",
-          version: "0.0.0",
+          version: "0.1.0",
         },
         [...validFiles, { mode: 0o644, path: "src/cli.ts" }],
       ),

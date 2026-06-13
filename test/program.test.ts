@@ -116,7 +116,7 @@ describe("MobTrace program", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
-    expect(result.stdout).toBe("0.0.0\n");
+    expect(result.stdout).toBe("0.1.0\n");
   });
 
   it("rejects unsupported commands", async () => {
