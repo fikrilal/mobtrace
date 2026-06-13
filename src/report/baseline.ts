@@ -4,6 +4,7 @@ import {
   type FinalResult,
   finalResultSchema,
 } from "../contracts/report.js";
+import { classifyFailure } from "../diagnosis/classify.js";
 import type { NormalizedEvidence } from "../evidence/normalized.js";
 import { MOBTRACE_VERSION } from "../version.js";
 
@@ -72,30 +73,14 @@ export async function generateBaselineReports(
 function baselineDiagnosis(
   evidence: NormalizedEvidence,
 ): FinalResult["diagnosis"] {
-  if (evidence.run.status === "passed") {
-    return {
-      failureClass: "none",
-      failureDomain: "none",
-      matchedSignatures: [],
-      suspiciousChanges: [],
-      suggestedAction:
-        "No failure detected. Keep this run as baseline evidence.",
-    };
-  }
+  const classification = classifyFailure(evidence);
 
   return {
-    failureClass: evidence.journey.timedOut
-      ? "runner-timeout"
-      : evidence.journey.status === "failed"
-        ? "runner-error"
-        : "processing-error",
-    failureDomain:
-      evidence.run.outcome === "journey-failed"
-        ? "test-harness"
-        : "infrastructure",
+    failureClass: classification.failureClass,
+    failureDomain: classification.failureDomain,
     matchedSignatures: [],
     suspiciousChanges: [],
-    suggestedAction: "Inspect retained runner, hook, and source evidence.",
+    suggestedAction: classification.suggestedAction,
   };
 }
 

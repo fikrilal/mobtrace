@@ -9,6 +9,7 @@ import {
   primaryOutcomeSchema,
   runIdSchema,
 } from "../contracts/report.js";
+import { extractFailureFacts } from "../diagnosis/facts.js";
 import type { VerifyLifecycleResult } from "../verify/lifecycle.js";
 
 const timestampSchema = z
@@ -181,7 +182,7 @@ export async function normalizeLifecycleEvidence(
       stdout: hook.stdout,
       timedOut: hook.timedOut,
     })),
-    failure: directFailureFacts(lifecycle),
+    failure: await extractFailureFacts(artifactStore, lifecycle),
   });
 
   return {
@@ -213,37 +214,5 @@ function normalizeSource(
     head: lifecycle.source.head,
     metadata: lifecycle.source.metadata,
     untrackedFileCount: lifecycle.source.untrackedFileCount,
-  };
-}
-
-function directFailureFacts(
-  lifecycle: VerifyLifecycleResult,
-): NormalizedEvidence["failure"] {
-  if (lifecycle.journey.status === "failed") {
-    return {
-      failedCommand: lifecycle.journey.command?.arguments.join(" ") ?? null,
-      failedSelector: null,
-      message: lifecycle.journey.error?.message ?? "Journey failed.",
-      summary: "The mobile journey failed.",
-    };
-  }
-
-  const failedPhase = lifecycle.phases.find(
-    (phase) => phase.status === "failed",
-  );
-  if (failedPhase !== undefined) {
-    return {
-      failedCommand: failedPhase.id,
-      failedSelector: null,
-      message: failedPhase.error?.message ?? "Phase failed.",
-      summary: "MobTrace could not complete every lifecycle phase.",
-    };
-  }
-
-  return {
-    failedCommand: null,
-    failedSelector: null,
-    message: null,
-    summary: null,
   };
 }

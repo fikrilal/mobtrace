@@ -196,6 +196,7 @@ describe("verify command", () => {
       "--json",
     ]);
     const parsed = JSON.parse(result.stdout) as {
+      diagnosis: { failureClass: string; failureDomain: string };
       exitCode: number;
       journey: { status: string };
       status: string;
@@ -208,6 +209,12 @@ describe("verify command", () => {
       exitCode: 1,
       journey: { status: "failed" },
       status: "failed",
+    });
+    expect(parsed).toMatchObject({
+      diagnosis: {
+        failureClass: "unknown",
+        failureDomain: "unknown",
+      },
     });
   });
 });
