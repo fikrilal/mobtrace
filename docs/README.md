@@ -12,6 +12,12 @@ unless explicitly adopted.
 - `docs/product/product.md` - user problem, scope, differentiation, metrics,
   and kill criteria
 
+## Guides
+
+- `docs/guides/usage.md` - install, configure, run, and inspect MobTrace
+- `docs/guides/troubleshooting.md` - common failures and first inspections
+- `docs/guides/releasing.md` - manual package release and publish flow
+
 ## Public Contracts
 
 - `docs/contracts/cli.md` - commands, streams, options, and exit codes

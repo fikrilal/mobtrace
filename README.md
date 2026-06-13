@@ -7,9 +7,9 @@ It runs an existing Maestro journey, captures local evidence, inspects the
 current Git diff, and prints a deterministic diagnosis that points to the most
 likely investigation area.
 
-The project is experimental and preparing for public v0.1. Start at
-`docs/README.md` for full product, contract, engineering, and execution-plan
-documentation.
+The project is experimental and preparing for public v0.1. Start with
+`docs/guides/usage.md`, then use `docs/README.md` for full product, contract,
+engineering, and execution-plan documentation.
 
 ## Requirements
 
@@ -61,6 +61,8 @@ flows:
 See `examples/minimal/mobtrace.yaml` for a slightly fuller starting point with
 artifact and ownership hints.
 
+For more detail, read `docs/guides/usage.md`.
+
 Run and inspect:
 
 ```bash
@@ -102,6 +104,8 @@ agent or developer decide where to inspect first.
   and marked as sensitive.
 - Retained artifacts default to `.mobtrace/runs`; keep `.mobtrace/` ignored in
   consuming projects.
+
+For common setup and runtime failures, read `docs/guides/troubleshooting.md`.
 
 ## Development
 

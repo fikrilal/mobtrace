@@ -15,6 +15,9 @@ const validFiles: readonly PackedFile[] = [
   { mode: 0o644, path: "docs/contracts/cli.md" },
   { mode: 0o644, path: "docs/contracts/configuration.md" },
   { mode: 0o644, path: "docs/contracts/report.md" },
+  { mode: 0o644, path: "docs/guides/releasing.md" },
+  { mode: 0o644, path: "docs/guides/troubleshooting.md" },
+  { mode: 0o644, path: "docs/guides/usage.md" },
   {
     mode: 0o644,
     path: "docs/engineering/mobile-core-kit-integration.md",

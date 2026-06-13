@@ -11,6 +11,7 @@
     "dist",
     "docs/README.md",
     "docs/contracts",
+    "docs/guides",
     "docs/engineering/mobile-core-kit-integration.md",
     "docs/engineering/platform-support.md",
     "docs/engineering/product-validation.md",
