@@ -77,6 +77,9 @@ describe("report command", () => {
       runId: "20260612T100000Z-e00003",
       status: "failed",
     });
+    const original = JSON.parse(
+      await run.store.readText(run.runId, "result.json"),
+    ) as { diagnosis: unknown };
     await Promise.all([
       rm(join(run.directory, "result.json")),
       rm(join(run.directory, "report.md")),
@@ -94,6 +97,10 @@ describe("report command", () => {
     expect(result.stderr).toBe("");
     expect(result.stdout).toContain("# MobTrace Report");
     expect(result.stdout).toContain("Status: failed");
+    const regenerated = JSON.parse(
+      await run.store.readText(run.runId, "result.json"),
+    ) as { diagnosis: unknown };
+    expect(regenerated.diagnosis).toEqual(original.diagnosis);
   });
 
   it("resolves an explicit artifact directory", async () => {
@@ -181,7 +188,11 @@ async function createRetainedRun(
     readonly runId: string;
     readonly status: "failed" | "passed";
   },
-): Promise<{ readonly directory: string; readonly runId: string }> {
+): Promise<{
+  readonly directory: string;
+  readonly runId: string;
+  readonly store: ArtifactStore;
+}> {
   const store = new ArtifactStore(join(root, ".mobtrace/runs"));
   const initialized = await store.initializeRun({
     flowName: options.flowName,
@@ -203,7 +214,11 @@ async function createRetainedRun(
     emptyContext,
     new Date("2026-06-12T11:00:00.000Z"),
   );
-  return { directory: initialized.directory, runId: options.runId };
+  return {
+    directory: initialized.directory,
+    runId: options.runId,
+    store,
+  };
 }
 
 const emptyContext: DiagnosisContext = {

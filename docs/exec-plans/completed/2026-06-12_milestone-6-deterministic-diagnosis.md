@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: Active
+Status: Completed
 Risk class: medium
 Related issue/PR: N/A
 
@@ -55,9 +55,9 @@ for diagnosis. Signature files are configured but not loaded.
 - [x] Commit 3: persist diagnosis context, apply ownership, and match built-in
       and project signatures.
 - [x] Commit 3: encode at least three historical signatures.
-- [ ] Commit 4: render deterministic diagnosis in compact/Markdown/JSON output.
-- [ ] Commit 4: verify regenerated reports preserve diagnosis.
-- [ ] Complete docs and run full verification.
+- [x] Commit 4: render deterministic diagnosis in compact/Markdown/JSON output.
+- [x] Commit 4: verify regenerated reports preserve diagnosis.
+- [x] Complete docs and run full verification.
 
 ## Decision Log
 
@@ -94,6 +94,17 @@ Outcome after commit 3 implementation on 2026-06-12: passed.
 - package smoke verification passed
 - gate-honesty verification passed
 
+Outcome after commit 4 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 20 test files passed, 110 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
 Outcome after commit 2 implementation on 2026-06-12: passed.
 
 - format check passed
@@ -120,7 +131,19 @@ this milestone.
 
 ## Completion Notes
 
-Pending.
+Implemented deterministic diagnosis:
+
+- direct failure extraction from retained runner and hook output
+- explicit failure-class and failure-domain precedence
+- unknown fallback for unsupported journey failures
+- deterministic diff-hunk ranking with evidence-backed reasons
+- selector, semantics ID, API payload, navigation/session, and fixture rules
+- flow ownership bias
+- persisted non-secret diagnosis context
+- built-in and project-defined signatures
+- four built-in historical signatures
+- compact and Markdown diagnosis rendering
+- diagnosis-equivalent historical regeneration
 
 ## Follow-Ups
 

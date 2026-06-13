@@ -274,6 +274,26 @@ Reason: ${result.source.reason}`;
   const evidence = result.evidence
     .map((item) => `- [${item.id}](${item.path}): ${item.description}`)
     .join("\n");
+  const suspiciousChanges =
+    result.diagnosis.suspiciousChanges.length === 0
+      ? "None"
+      : result.diagnosis.suspiciousChanges
+          .map((change) => {
+            const reasons = change.reasons
+              .map((reason) => `  - ${reason.code}: ${reason.message}`)
+              .join("\n");
+            return `${change.rank}. \`${change.path}\`\n${reasons}`;
+          })
+          .join("\n");
+  const signatures =
+    result.diagnosis.matchedSignatures.length === 0
+      ? "None"
+      : result.diagnosis.matchedSignatures
+          .map(
+            (signature) =>
+              `- ${signature.id}: ${signature.action} (${signature.evidence.join(", ")})`,
+          )
+          .join("\n");
 
   return `# MobTrace Report
 
@@ -320,8 +340,14 @@ Message: ${result.failure.message ?? "None"}
 
 Class: ${result.diagnosis.failureClass}
 Domain: ${result.diagnosis.failureDomain}
-Suspicious changes: ${result.diagnosis.suspiciousChanges.length}
-Matched signatures: ${result.diagnosis.matchedSignatures.length}
+
+### Suspicious Changes
+
+${suspiciousChanges}
+
+### Matched Signatures
+
+${signatures}
 
 ## Lifecycle Phases
 
@@ -348,11 +374,33 @@ export function renderCompact(
       : result.status === "interrupted"
         ? "INTERRUPTED"
         : "FAILED";
+  const failureDetails =
+    result.status === "passed"
+      ? ""
+      : `Class: ${result.diagnosis.failureClass}
+Domain: ${result.diagnosis.failureDomain}
+${result.failure.failedSelector === null ? "" : `Failed selector: ${result.failure.failedSelector}`}
+${renderCompactChanges(result)}
+Next action:
+${result.diagnosis.suggestedAction}
+
+`;
   return `${title} ${result.flow.name ?? result.flow.path}
 Outcome: ${result.outcome}
 
-Report: ${reportPath}
+${failureDetails}Report: ${reportPath}
 JSON: ${jsonPath}
+`;
+}
+
+function renderCompactChanges(result: FinalResult): string {
+  const changes = result.diagnosis.suspiciousChanges.slice(0, 3);
+  if (changes.length === 0) {
+    return "";
+  }
+  return `Most suspicious:
+${changes.map((change) => `${change.rank}. ${change.path}`).join("\n")}
+
 `;
 }
 

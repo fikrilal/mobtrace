@@ -79,6 +79,9 @@ describe("baseline report generation", () => {
     expect(markdown).toContain("## Hooks");
     expect(markdown).toContain("## Failure");
     expect(markdown).toContain("## Diagnosis");
+    expect(markdown).toContain("### Suspicious Changes");
+    expect(markdown).toContain("### Matched Signatures");
+    expect(markdown).toContain("assertion-false-missing-id");
     expect(markdown).toContain("## Lifecycle Phases");
     expect(markdown).toContain("## Evidence");
     expect(markdown).toContain("## Suggested Action");
@@ -87,6 +90,13 @@ describe("baseline report generation", () => {
     );
     expect(reports.compact).toBe(`FAILED login
 Outcome: journey-failed
+
+Class: selector-mismatch
+Domain: test-harness
+Failed selector: home_screen
+
+Next action:
+Compare the selector with the final visible hierarchy.
 
 Report: report.md
 JSON: result.json
@@ -240,9 +250,10 @@ function fixtureEvidence(): NormalizedEvidence {
     hooks: [],
     failure: {
       failedCommand: "test <flow>",
-      failedSelector: null,
-      message: "Maestro reported a failed journey.",
-      summary: "The mobile journey failed.",
+      failedSelector: "home_screen",
+      message: "Element not found: home_screen",
+      summary:
+        "The mobile journey failed while resolving an expected selector.",
     },
   });
 }

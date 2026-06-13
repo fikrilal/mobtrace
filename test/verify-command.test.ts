@@ -25,7 +25,10 @@ interface CapturedRun {
   readonly stdout: string;
 }
 
-async function createProject(maestroExitCode: number): Promise<string> {
+async function createProject(
+  maestroExitCode: number,
+  maestroError = "fake maestro stderr",
+): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "mobtrace-verify-command-"));
   temporaryDirectories.push(root);
   await git(root, ["init"]);
@@ -41,7 +44,7 @@ async function createProject(maestroExitCode: number): Promise<string> {
   exit 0
 fi
 printf "fake maestro stdout\\n"
-printf "fake maestro stderr\\n" >&2
+printf '${maestroError}\\n' >&2
 exit ${maestroExitCode}`,
   );
   await writeFile(
@@ -216,5 +219,28 @@ describe("verify command", () => {
         failureDomain: "unknown",
       },
     });
+  });
+
+  it("extracts and renders a failed selector from retained runner output", async () => {
+    const root = await createProject(
+      1,
+      'Failed command: assertVisible\nElement not found: "home_screen"',
+    );
+
+    const result = await runProgram([
+      "--project",
+      root,
+      "verify",
+      "--flow",
+      "login",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toContain("Class: selector-mismatch");
+    expect(result.stdout).toContain("Domain: test-harness");
+    expect(result.stdout).toContain("Failed selector: home_screen");
+    expect(result.stdout).toContain(
+      "Compare the selector with the final visible hierarchy.",
+    );
   });
 });
