@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "${1:-}" = "--version" ]; then
+  printf "maestro validation-fixture\n"
+  exit 0
+fi
+
+flow="${2:-}"
+case "$flow" in
+  *pass.yaml)
+    printf "Journey passed\n"
+    exit 0
+    ;;
+  *selector-flow.yaml)
+    printf "Failed command: assertVisible\n" >&2
+    printf "Element not found: \"home_screen\"\n" >&2
+    exit 1
+    ;;
+  *navigation.yaml)
+    printf "Navigation failed: stayed on login screen after submit\n" >&2
+    exit 1
+    ;;
+  *backend.yaml)
+    printf "HTTP 401 unauthorized after login submit\n" >&2
+    exit 1
+    ;;
+  *device-offline.yaml)
+    printf "Device emulator-5554 is offline before run\n" >&2
+    exit 1
+    ;;
+  *interrupted.yaml)
+    printf "Journey started and waiting\n"
+    sleep 10
+    exit 0
+    ;;
+  *)
+    printf "Unknown validation flow: %s\n" "$flow" >&2
+    exit 2
+    ;;
+esac

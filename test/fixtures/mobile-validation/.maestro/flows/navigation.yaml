@@ -1,0 +1,5 @@
+appId: dev.mobtrace.fixture
+---
+- launchApp
+- tapOn: login_button
+- assertVisible: home_screen

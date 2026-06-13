@@ -1,0 +1,4 @@
+appId: dev.mobtrace.fixture
+---
+- launchApp
+- assertVisible: home_screen

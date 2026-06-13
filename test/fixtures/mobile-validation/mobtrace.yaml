@@ -1,0 +1,47 @@
+version: 1
+maestro:
+  executable: ./bin/maestro
+artifacts:
+  root: .mobtrace/runs
+defaults:
+  baseline: HEAD
+flows:
+  pass:
+    path: .maestro/flows/pass.yaml
+    owns:
+      - lib/features/auth/
+      - lib/navigation/
+  selector-flow:
+    path: .maestro/flows/selector-flow.yaml
+    owns:
+      - lib/features/auth/
+  navigation:
+    path: .maestro/flows/navigation.yaml
+    owns:
+      - lib/navigation/
+  backend:
+    path: .maestro/flows/backend.yaml
+    owns:
+      - lib/features/auth/data/
+  device-offline:
+    path: .maestro/flows/device-offline.yaml
+  prepare-failure:
+    path: .maestro/flows/pass.yaml
+    hooks:
+      prepare:
+        command: ["./hooks/fail-prepare.sh"]
+  cleanup-after-pass:
+    path: .maestro/flows/pass.yaml
+    hooks:
+      cleanup:
+        command: ["./hooks/fail-cleanup.sh"]
+  cleanup-after-fail:
+    path: .maestro/flows/selector-flow.yaml
+    hooks:
+      cleanup:
+        command: ["./hooks/fail-cleanup.sh"]
+  interrupted:
+    path: .maestro/flows/interrupted.yaml
+    hooks:
+      cleanup:
+        command: ["./hooks/record-cleanup.sh"]
