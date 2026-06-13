@@ -32,6 +32,11 @@ unless explicitly adopted.
 - `docs/engineering/parallel-agent-workflow.md` - concurrent agent isolation
 - `docs/engineering/platform-support.md` - supported hosts, reliability
   evidence, and local-only data boundary
+- `docs/engineering/product-validation.md` - Milestone 8 fixture evidence,
+  metrics, and kill-criteria evaluation
+- `docs/engineering/mobile-core-kit-integration.md` - reference dogfood
+  integration for the original mobile harness
+- `docs/engineering/release-checklist.md` - public v0.1 readiness checklist
 
 ## Execution Plans
 

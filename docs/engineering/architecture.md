@@ -76,6 +76,7 @@ src/version.ts   package version
 
 test/
 test/fixtures/
+  mobile-validation/
   report/
 test/architecture-boundaries.test.ts
 test/artifact-paths.test.ts
@@ -89,6 +90,7 @@ test/maestro-runner.test.ts
 test/package-smoke.test.ts
 test/platform-support.test.ts
 test/process-execution.test.ts
+test/product-validation.test.ts
 test/program.test.ts
 test/project-map.test.ts
 test/report-baseline.test.ts
