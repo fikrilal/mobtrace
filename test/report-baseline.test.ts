@@ -62,7 +62,7 @@ describe("baseline report generation", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "runner-stderr",
-          redacted: false,
+          redacted: true,
           sensitive: true,
         }),
         expect.objectContaining({
@@ -84,9 +84,12 @@ describe("baseline report generation", () => {
     expect(markdown).toContain("assertion-false-missing-id");
     expect(markdown).toContain("## Lifecycle Phases");
     expect(markdown).toContain("## Evidence");
+    expect(markdown).toContain(
+      "Warning: 1 referenced evidence file(s) may contain unredacted project-controlled data.",
+    );
     expect(markdown).toContain("## Suggested Action");
     expect(markdown).toContain(
-      "- [runner-stderr](runner/stderr.log): Original Maestro standard error.",
+      "- [runner-stderr](runner/stderr.log): Retained Maestro standard error.",
     );
     expect(reports.compact).toBe(`FAILED login
 Outcome: journey-failed

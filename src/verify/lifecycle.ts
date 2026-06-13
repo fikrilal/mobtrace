@@ -26,6 +26,7 @@ export interface JourneyExecutionInput {
   readonly environment: ReadonlyMap<string, string>;
   readonly flow: ResolvedFlowInvocation;
   readonly projectRoot: string;
+  readonly redactionValues?: readonly string[];
   readonly runDirectory: string;
   readonly runId: string;
 }
@@ -139,7 +140,7 @@ export async function runVerifyLifecycle(
   }
 
   const environment = environmentMap(flow.environment);
-  const redactionValues = sensitiveValues(flow.environment);
+  const redactionValues = [...sensitiveValues(flow.environment)];
   const hooks: HookRunResult[] = [];
   const exportedEnvironment = new Map<string, string>();
 
@@ -170,6 +171,7 @@ export async function runVerifyLifecycle(
     });
     hooks.push(hook);
     mergeExports(exportedEnvironment, hook.exportedEnvironment);
+    redactionValues.push(...hook.exportedEnvironment.values());
     phases.push(phaseFromHook(projectPreparePhase, hook));
     if (hook.status === "failed") {
       await cleanupEntered({
@@ -225,6 +227,7 @@ export async function runVerifyLifecycle(
     });
     hooks.push(hook);
     mergeExports(exportedEnvironment, hook.exportedEnvironment);
+    redactionValues.push(...hook.exportedEnvironment.values());
     phases.push(phaseFromHook(flowPreparePhase, hook));
     if (hook.status === "failed") {
       await cleanupEntered({
@@ -263,6 +266,7 @@ export async function runVerifyLifecycle(
     environment: new Map([...environment, ...exportedEnvironment]),
     flow,
     projectRoot: input.projectRoot,
+    redactionValues,
     runDirectory: run.directory,
     runId: run.manifest.runId,
   });

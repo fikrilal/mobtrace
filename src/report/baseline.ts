@@ -144,7 +144,7 @@ function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
         hook.stdout,
         "text/plain",
         `${hook.id} standard output.`,
-        false,
+        true,
         true,
       ),
       evidenceRef(
@@ -153,7 +153,7 @@ function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
         hook.stderr,
         "text/plain",
         `${hook.id} standard error.`,
-        false,
+        true,
         true,
       ),
     );
@@ -179,8 +179,8 @@ function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
         "runner-log",
         evidence.journey.stdout,
         "text/plain",
-        "Original Maestro standard output.",
-        false,
+        "Retained Maestro standard output.",
+        true,
         true,
       ),
     );
@@ -192,8 +192,8 @@ function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
         "runner-log",
         evidence.journey.stderr,
         "text/plain",
-        "Original Maestro standard error.",
-        false,
+        "Retained Maestro standard error.",
+        true,
         true,
       ),
     );
@@ -283,11 +283,13 @@ Reason: ${result.source.reason}`;
   const evidence = result.evidence
     .map((item) => `- [${item.id}](${item.path}): ${item.description}`)
     .join("\n");
-  const sensitiveEvidence = result.evidence.filter((item) => item.sensitive);
+  const unredactedSensitiveEvidence = result.evidence.filter(
+    (item) => item.sensitive && !item.redacted,
+  );
   const evidenceWarning =
-    sensitiveEvidence.length === 0
-      ? "No evidence files are marked sensitive."
-      : `Warning: ${sensitiveEvidence.length} referenced evidence file(s) may contain unredacted project-controlled data.`;
+    unredactedSensitiveEvidence.length === 0
+      ? "No unredacted sensitive evidence files are referenced."
+      : `Warning: ${unredactedSensitiveEvidence.length} referenced evidence file(s) may contain unredacted project-controlled data.`;
   const suspiciousChanges =
     result.diagnosis.suspiciousChanges.length === 0
       ? "None"

@@ -96,14 +96,18 @@ flows:
     expect(result.status).toBe("passed");
     expect(result.exitCode).toBe(0);
     expect(result.command?.arguments).toEqual([
+      "test",
       "--device",
       "emulator-5554",
-      "test",
+      "-e",
+      "MOBTRACE_TEST_VALUE=from-env",
       flow.flowPath,
     ]);
     expect(
       await readFile(join(run.directory, "runner/stdout.log"), "utf8"),
-    ).toContain("stdout:--device emulator-5554 test");
+    ).toContain(
+      "stdout:test --device emulator-5554 -e MOBTRACE_TEST_VALUE=from-env",
+    );
     expect(
       await readFile(join(run.directory, "runner/stderr.log"), "utf8"),
     ).toBe("stderr:from-env\n");
@@ -114,6 +118,65 @@ flows:
       runnerVersion: "maestro 2.test",
       status: "passed",
     });
+  });
+
+  it("passes configured environment through Maestro -e arguments", async () => {
+    const root = await createProject();
+    const maestro = await createExecutable(
+      root,
+      "maestro",
+      `if [ "$1" = "--version" ]; then exit 0; fi
+printf "%s\\n" "$*"`,
+    );
+    await writeFile(
+      join(root, "mobtrace.yaml"),
+      `version: 1
+maestro:
+  executable: ${maestro}
+flows:
+  login:
+    path: .maestro/login.yaml
+`,
+      "utf8",
+    );
+    const store = new ArtifactStore(join(root, ".mobtrace/runs"));
+    const run = await store.initializeRun({
+      flowName: "login",
+      flowPath: ".maestro/login.yaml",
+      flowResolution: "configured",
+      runId: "20260612T000000Z-c00004",
+    });
+    const flow = await resolveFlowInvocation(
+      root,
+      await discoverConfiguration(root),
+      { flow: "login" },
+    );
+
+    const result = await new MaestroRunner().run({
+      artifactStore: store,
+      environment: new Map([
+        ["APP_ID", "dev.example"],
+        ["MAESTRO_TEST_PASSWORD", "secret-password"],
+      ]),
+      flow,
+      projectRoot: root,
+      redactionValues: ["secret-password"],
+      runDirectory: run.directory,
+      runId: run.manifest.runId,
+    });
+
+    expect(result.status).toBe("passed");
+    expect(result.command?.arguments).toEqual([
+      "test",
+      "-e",
+      "APP_ID=dev.example",
+      "-e",
+      "MAESTRO_TEST_PASSWORD=[REDACTED]",
+      flow.flowPath,
+    ]);
+    expect(
+      await readFile(join(run.directory, "runner/stdout.log"), "utf8"),
+    ).toContain("MAESTRO_TEST_PASSWORD=[REDACTED]");
   });
 
   it("maps non-zero Maestro exit to failed journey", async () => {

@@ -293,7 +293,10 @@ flows:
       expect(generated.join("\n")).toContain("[REDACTED]");
       expect(
         await readFile(join(runDirectory, "runner/stderr.log"), "utf8"),
-      ).toContain(secret);
+      ).not.toContain(secret);
+      expect(
+        await readFile(join(runDirectory, "runner/stderr.log"), "utf8"),
+      ).toContain("[REDACTED]");
       const report = JSON.parse(generated[1] ?? "{}") as {
         evidence: Array<{
           id: string;
@@ -304,7 +307,7 @@ flows:
       expect(report.evidence).toContainEqual(
         expect.objectContaining({
           id: "runner-stderr",
-          redacted: false,
+          redacted: true,
           sensitive: true,
         }),
       );

@@ -243,12 +243,12 @@ export async function executeHook(
   const stdoutPath = await input.artifactStore.writeText(
     input.runId,
     `hooks/${input.definition.id}/stdout.log`,
-    result.stdout,
+    result.redactedStdout,
   );
   const stderrPath = await input.artifactStore.writeText(
     input.runId,
     `hooks/${input.definition.id}/stderr.log`,
-    result.stderr,
+    result.redactedStderr,
   );
   const status =
     result.exitCode === 0 && !result.timedOut && outputError === null

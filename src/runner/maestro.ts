@@ -24,6 +24,9 @@ export class MaestroRunner implements JourneyRunner {
         ...Object.fromEntries(input.environment),
       },
       executable: input.flow.maestroExecutable,
+      redaction: {
+        values: input.redactionValues ?? [],
+      },
       ...(input.flow.timeout === undefined
         ? {}
         : { timeoutMs: input.flow.timeout.milliseconds }),
@@ -32,12 +35,12 @@ export class MaestroRunner implements JourneyRunner {
     const stdoutPath = await input.artifactStore.writeText(
       input.runId,
       "runner/stdout.log",
-      result.stdout,
+      result.redactedStdout,
     );
     const stderrPath = await input.artifactStore.writeText(
       input.runId,
       "runner/stderr.log",
-      result.stderr,
+      result.redactedStderr,
     );
     const status = result.interrupted
       ? "interrupted"
@@ -100,11 +103,16 @@ export class MaestroRunner implements JourneyRunner {
 }
 
 function buildMaestroArgs(input: JourneyExecutionInput): readonly string[] {
-  const args = [];
+  const args = ["test"];
   if (input.flow.device !== undefined) {
     args.push("--device", input.flow.device);
   }
-  args.push("test", input.flow.flowPath);
+  for (const [key, value] of [...input.environment.entries()].sort(
+    ([left], [right]) => left.localeCompare(right),
+  )) {
+    args.push("-e", `${key}=${value}`);
+  }
+  args.push(input.flow.flowPath);
   return args;
 }
 
