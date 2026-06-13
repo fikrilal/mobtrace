@@ -42,7 +42,7 @@ evidence, report, regeneration, and exit-code behavior.
 | unavailable or offline device | infrastructure | `device-not-ready` classification |
 | preparation failure | test harness | journey is `not-run`, exit code `3` |
 | cleanup failure after pass | test harness | journey passed, cleanup failed, exit code `4` |
-| cleanup failure after failed journey | mixed | journey failure exit code remains `1`, cleanup phase is retained |
+| cleanup failure after failed journey | test harness | journey diagnosis remains primary, cleanup phase is retained |
 | interrupted journey | infrastructure | partial run, exit code `130`, cleanup attempted |
 | report regeneration | report contract | historical run regenerates without rerunning journey |
 
@@ -52,17 +52,16 @@ Automated fixture baseline:
 
 | Metric | Result |
 | --- | --- |
-| First suggested investigation area correct | 8 of 9 failure scenarios |
+| First suggested investigation area correct | 9 of 9 failure scenarios |
 | Top suspicious file contains eventual fix | 3 of 3 source-correlated failure scenarios |
 | Artifacts opened before correct investigation area | 0 for classified fixture failures |
 | Report regeneration reruns mobile journey | no |
 | Repeated-run reliability on documented baseline | covered by `test/reliability-smoke.test.ts` |
 | MobTrace overhead beyond fake Maestro | measured in run `durationMs`; no fixed threshold yet |
 
-The mixed cleanup-after-failed-journey scenario is intentionally counted as not
-fully correct for first investigation area. The exit code preserves the journey
-failure, and the cleanup phase is retained, but diagnosis currently emphasizes
-the cleanup failure because failed cleanup is a strong lifecycle signal.
+The cleanup-after-failed-journey scenario preserves the journey failure as the
+primary investigation area while keeping cleanup failure visible as secondary
+lifecycle evidence.
 
 ## Human Dogfood Metrics
 

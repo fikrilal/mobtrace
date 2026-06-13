@@ -46,9 +46,21 @@ describe("failure classification", () => {
       expectedDomain: "backend",
       evidence: evidence({
         message: "HTTP 500 empty JSON response during cleanup",
+        outcome: "cleanup-failed",
         phaseId: "cleanup-flow",
+        status: "error",
       }),
       label: "backend cleanup",
+    },
+    {
+      expectedClass: "selector-mismatch",
+      expectedDomain: "test-harness",
+      evidence: evidence({
+        failedSelector: "home_screen",
+        message: "Element not found",
+        phaseId: "cleanup-flow",
+      }),
+      label: "journey failure with cleanup failure",
     },
     {
       expectedClass: "backend-http-error",
@@ -111,21 +123,22 @@ function evidence(options: {
   readonly message?: string;
   readonly outcome?: NormalizedEvidence["run"]["outcome"];
   readonly phaseId?: NormalizedEvidence["phases"][number]["id"];
-  readonly status?: "failed" | "passed";
+  readonly status?: "error" | "failed" | "passed";
   readonly timedOut?: boolean;
 }): NormalizedEvidence {
   const passed = options.status === "passed";
+  const errored = options.status === "error";
   return normalizedEvidenceSchema.parse({
     schemaVersion: 1,
     run: {
       completedAt: "2026-06-12T10:00:02.000Z",
       createdAt: "2026-06-12T10:00:00.000Z",
       durationMs: 2000,
-      exitCode: passed ? 0 : 1,
+      exitCode: passed ? 0 : errored ? 4 : 1,
       mobtraceVersion: "0.0.0",
       outcome: options.outcome ?? (passed ? "verified-pass" : "journey-failed"),
       runId: "20260612T100000Z-f00001",
-      status: passed ? "passed" : "failed",
+      status: passed ? "passed" : errored ? "error" : "failed",
     },
     flow: {
       name: "login",
@@ -142,10 +155,10 @@ function evidence(options: {
       error: passed
         ? null
         : { code: "runner-error", message: options.message ?? "failed" },
-      exitCode: passed ? 0 : 1,
+      exitCode: passed || errored ? 0 : 1,
       result: "runner/result.json",
       startedAt: "2026-06-12T10:00:01.000Z",
-      status: passed ? "passed" : "failed",
+      status: passed || errored ? "passed" : "failed",
       stderr: "runner/stderr.log",
       stdout: "runner/stdout.log",
       timedOut: options.timedOut ?? false,

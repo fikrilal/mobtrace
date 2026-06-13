@@ -67,8 +67,9 @@ export function classifyFailure(
     );
   }
   if (
-    failedPhase(evidence, "cleanup-project") ||
-    failedPhase(evidence, "cleanup-flow")
+    evidence.journey.status !== "failed" &&
+    (failedPhase(evidence, "cleanup-project") ||
+      failedPhase(evidence, "cleanup-flow"))
   ) {
     return classification(
       "fixture-cleanup-failed",
@@ -153,7 +154,6 @@ export function classifyFailure(
       "Inspect the runner result and launch diagnostics.",
     );
   }
-
   return classification(
     "unknown",
     "unknown",

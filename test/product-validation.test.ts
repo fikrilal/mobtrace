@@ -134,6 +134,10 @@ describe("Milestone 8 product validation fixture", () => {
     const cleanupAfterFail = await verifyJson(project, "cleanup-after-fail");
     expect(cleanupAfterFail.exitCode).toBe(1);
     expect(cleanupAfterFail.result).toMatchObject({
+      diagnosis: {
+        failureClass: "selector-mismatch",
+        failureDomain: "test-harness",
+      },
       journey: { status: "failed" },
       outcome: "journey-failed",
       status: "failed",
