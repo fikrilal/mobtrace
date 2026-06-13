@@ -51,9 +51,9 @@ evidence artifact, no historical run resolution, and no `report` command.
 
 - [x] Commit 1: add normalized evidence schema and writer.
 - [x] Commit 1: add normalization tests and evidence index reference.
-- [ ] Commit 2: generate canonical result and structured Markdown from
+- [x] Commit 2: generate canonical result and structured Markdown from
       normalized evidence.
-- [ ] Commit 2: add baseline report golden/structural tests.
+- [x] Commit 2: add baseline report golden/structural tests.
 - [ ] Commit 3: add latest and explicit run resolution.
 - [ ] Commit 3: add report regeneration and CLI output modes.
 - [ ] Commit 3: add historical failure, stale/missing report, and ordering tests.
@@ -78,6 +78,17 @@ Outcome after commit 1 implementation on 2026-06-12: passed.
 - lint passed
 - type check passed
 - 15 test files passed, 76 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
+Outcome after commit 2 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 16 test files passed, 77 tests passed
 - build passed
 - project-map verification passed
 - package smoke verification passed

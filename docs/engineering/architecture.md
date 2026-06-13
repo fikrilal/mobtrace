@@ -49,7 +49,7 @@ src/process/
   execute.ts
   redaction.ts
 src/report/
-  initial.ts
+  baseline.ts
 src/runner/
   maestro.ts
 src/source/
@@ -74,6 +74,7 @@ test/package-smoke.test.ts
 test/process-execution.test.ts
 test/program.test.ts
 test/project-map.test.ts
+test/report-baseline.test.ts
 test/report-contract.test.ts
 test/run-id.test.ts
 test/source-git.test.ts

@@ -4,62 +4,43 @@ import {
   type FinalResult,
   finalResultSchema,
 } from "../contracts/report.js";
+import type { NormalizedEvidence } from "../evidence/normalized.js";
 import { MOBTRACE_VERSION } from "../version.js";
-import type { VerifyLifecycleResult } from "../verify/lifecycle.js";
 
-export interface InitialReportResult {
+export interface BaselineReportResult {
   readonly compact: string;
   readonly jsonPath: string;
   readonly markdownPath: string;
   readonly result: FinalResult;
 }
 
-export async function generateInitialReports(
+export async function generateBaselineReports(
   artifactStore: ArtifactStore,
-  lifecycle: VerifyLifecycleResult,
-): Promise<InitialReportResult> {
-  const generatedAt = new Date().toISOString();
+  evidence: NormalizedEvidence,
+  now = new Date(),
+): Promise<BaselineReportResult> {
+  const generatedAt = now.toISOString();
   const result = finalResultSchema.parse({
     schemaVersion: 1,
-    runId: lifecycle.runId,
+    runId: evidence.run.runId,
     mobtraceVersion: MOBTRACE_VERSION,
-    createdAt: lifecycle.phases[0]?.startedAt ?? generatedAt,
-    completedAt: generatedAt,
-    durationMs: totalDuration(lifecycle),
+    createdAt: evidence.run.createdAt,
+    completedAt: evidence.run.completedAt,
+    durationMs: evidence.run.durationMs,
     generatedAt,
     generatedByVersion: MOBTRACE_VERSION,
-    sourceRunCompletedAt: generatedAt,
-    status: lifecycle.status,
-    outcome: lifecycle.outcome,
-    exitCode: lifecycle.exitCode,
-    flow: {
-      name: lifecycle.flow.flowName,
-      path: lifecycle.flow.flowPathRelative,
-      resolution: lifecycle.flow.resolution,
-      runner: "maestro",
-    },
-    device: {
-      id: lifecycle.flow.device ?? null,
-      platform: "unknown",
-      available: null,
-    },
-    source: sourceResult(lifecycle),
-    journey: {
-      status: lifecycle.journey.status,
-      startedAt: lifecycle.journey.startedAt,
-      endedAt: lifecycle.journey.endedAt,
-      durationMs: lifecycle.journey.durationMs,
-      exitCode: lifecycle.journey.exitCode,
-      timedOut: lifecycle.journey.timedOut,
-      command: lifecycle.journey.command,
-      result: lifecycle.journey.result,
-      stdout: lifecycle.journey.stdout,
-      stderr: lifecycle.journey.stderr,
-    },
-    phases: lifecycle.phases,
-    failure: failureFacts(lifecycle),
-    diagnosis: diagnosis(lifecycle),
-    evidence: evidence(lifecycle),
+    sourceRunCompletedAt: evidence.run.completedAt,
+    status: evidence.run.status,
+    outcome: evidence.run.outcome,
+    exitCode: evidence.run.exitCode,
+    flow: evidence.flow,
+    device: evidence.device,
+    source: evidence.source,
+    journey: evidence.journey,
+    phases: evidence.phases,
+    failure: evidence.failure,
+    diagnosis: baselineDiagnosis(evidence),
+    evidence: evidenceIndex(evidence),
     reports: {
       markdown: "report.md",
       json: "result.json",
@@ -68,12 +49,12 @@ export async function generateInitialReports(
 
   const markdown = renderMarkdown(result);
   const markdownPath = await artifactStore.writeText(
-    lifecycle.runId,
+    evidence.run.runId,
     "report.md",
     markdown,
   );
   const jsonPath = await artifactStore.writeJson(
-    lifecycle.runId,
+    evidence.run.runId,
     "result.json",
     result,
   );
@@ -86,60 +67,10 @@ export async function generateInitialReports(
   };
 }
 
-function sourceResult(lifecycle: VerifyLifecycleResult): FinalResult["source"] {
-  if (!lifecycle.source.available) {
-    return lifecycle.source;
-  }
-
-  return {
-    available: true,
-    baseline: lifecycle.source.baseline,
-    baselineCommit: lifecycle.source.baselineCommit,
-    branch: lifecycle.source.branch,
-    changedFileCount: lifecycle.source.changedFileCount,
-    changedFiles: lifecycle.source.changedFiles,
-    diff: lifecycle.source.diff,
-    dirty: lifecycle.source.dirty,
-    head: lifecycle.source.head,
-    metadata: lifecycle.source.metadata,
-    untrackedFileCount: lifecycle.source.untrackedFileCount,
-  };
-}
-
-function failureFacts(
-  lifecycle: VerifyLifecycleResult,
-): FinalResult["failure"] {
-  if (lifecycle.journey.status === "failed") {
-    return {
-      failedCommand: lifecycle.journey.command?.arguments.join(" ") ?? null,
-      failedSelector: null,
-      message: lifecycle.journey.error?.message ?? "Journey failed.",
-      summary: "The mobile journey failed.",
-    };
-  }
-
-  const failedPhase = lifecycle.phases.find(
-    (phase) => phase.status === "failed",
-  );
-  if (failedPhase !== undefined) {
-    return {
-      failedCommand: failedPhase.id,
-      failedSelector: null,
-      message: failedPhase.error?.message ?? "Phase failed.",
-      summary: "MobTrace could not complete every lifecycle phase.",
-    };
-  }
-
-  return {
-    failedCommand: null,
-    failedSelector: null,
-    message: null,
-    summary: null,
-  };
-}
-
-function diagnosis(lifecycle: VerifyLifecycleResult): FinalResult["diagnosis"] {
-  if (lifecycle.status === "passed") {
+function baselineDiagnosis(
+  evidence: NormalizedEvidence,
+): FinalResult["diagnosis"] {
+  if (evidence.run.status === "passed") {
     return {
       failureClass: "none",
       failureDomain: "none",
@@ -151,13 +82,13 @@ function diagnosis(lifecycle: VerifyLifecycleResult): FinalResult["diagnosis"] {
   }
 
   return {
-    failureClass: lifecycle.journey.timedOut
+    failureClass: evidence.journey.timedOut
       ? "runner-timeout"
-      : lifecycle.journey.status === "failed"
+      : evidence.journey.status === "failed"
         ? "runner-error"
         : "processing-error",
     failureDomain:
-      lifecycle.outcome === "journey-failed"
+      evidence.run.outcome === "journey-failed"
         ? "test-harness"
         : "infrastructure",
     matchedSignatures: [],
@@ -166,7 +97,7 @@ function diagnosis(lifecycle: VerifyLifecycleResult): FinalResult["diagnosis"] {
   };
 }
 
-function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
+function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
   const references = [
     evidenceRef(
       "run-manifest",
@@ -179,12 +110,12 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
     ),
   ];
 
-  if (lifecycle.source.available) {
+  if (evidence.source.available) {
     references.push(
       evidenceRef(
         "source-metadata",
         "source-metadata",
-        lifecycle.source.metadata,
+        evidence.source.metadata,
         "application/json",
         "Source metadata.",
         true,
@@ -193,7 +124,7 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
       evidenceRef(
         "source-changed-files",
         "source-changed-files",
-        lifecycle.source.changedFiles,
+        evidence.source.changedFiles,
         "application/json",
         "Changed source files.",
         true,
@@ -202,7 +133,7 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
       evidenceRef(
         "source-diff",
         "source-diff",
-        lifecycle.source.diff,
+        evidence.source.diff,
         "text/x-diff",
         "Source changes compared with the selected baseline.",
         false,
@@ -211,7 +142,7 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
     );
   }
 
-  for (const hook of lifecycle.hooks) {
+  for (const hook of evidence.hooks) {
     references.push(
       evidenceRef(
         `${hook.id}-result`,
@@ -243,12 +174,12 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
     );
   }
 
-  if (lifecycle.journey.result !== null) {
+  if (evidence.journey.result !== null) {
     references.push(
       evidenceRef(
         "runner-result",
         "runner-result",
-        lifecycle.journey.result,
+        evidence.journey.result,
         "application/json",
         "Normalized Maestro result.",
         true,
@@ -256,12 +187,12 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
       ),
     );
   }
-  if (lifecycle.journey.stdout !== null) {
+  if (evidence.journey.stdout !== null) {
     references.push(
       evidenceRef(
         "runner-stdout",
         "runner-log",
-        lifecycle.journey.stdout,
+        evidence.journey.stdout,
         "text/plain",
         "Original Maestro standard output.",
         false,
@@ -269,12 +200,12 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
       ),
     );
   }
-  if (lifecycle.journey.stderr !== null) {
+  if (evidence.journey.stderr !== null) {
     references.push(
       evidenceRef(
         "runner-stderr",
         "runner-log",
-        lifecycle.journey.stderr,
+        evidence.journey.stderr,
         "text/plain",
         "Original Maestro standard error.",
         false,
@@ -328,21 +259,92 @@ function evidenceRef(
   return { description, id, mediaType, path, redacted, sensitive, type };
 }
 
-function renderMarkdown(result: FinalResult): string {
+export function renderMarkdown(result: FinalResult): string {
+  const source = result.source.available
+    ? `Available: yes
+Branch: ${result.source.branch ?? "detached HEAD"}
+Head: ${result.source.head}
+Baseline: ${result.source.baseline}
+Dirty: ${result.source.dirty ? "yes" : "no"}
+Changed files: ${result.source.changedFileCount}
+Untracked files: ${result.source.untrackedFileCount}`
+    : `Available: no
+Reason: ${result.source.reason}`;
+  const hooks =
+    result.phases
+      .filter(
+        (phase) => phase.id.includes("prepare") || phase.id.includes("cleanup"),
+      )
+      .map(
+        (phase) =>
+          `- ${phase.id}: ${phase.status}${phase.exitCode === null ? "" : ` (exit ${phase.exitCode})`}`,
+      )
+      .join("\n") || "None";
+  const phases = result.phases
+    .map(
+      (phase) =>
+        `- ${phase.id}: ${phase.status}${phase.error === null ? "" : ` - ${phase.error.message}`}`,
+    )
+    .join("\n");
+  const evidence = result.evidence
+    .map((item) => `- [${item.id}](${item.path}): ${item.description}`)
+    .join("\n");
+
   return `# MobTrace Report
+
+## Outcome
 
 Status: ${result.status}
 Outcome: ${result.outcome}
+Exit code: ${result.exitCode}
+
+## Run Metadata
+
+Run: ${result.runId}
 Flow: ${result.flow.name ?? result.flow.path}
+Flow path: ${result.flow.path}
+Resolution: ${result.flow.resolution}
+Device: ${result.device.id ?? "not selected"}
+Created: ${result.createdAt}
+Completed: ${result.completedAt}
+Duration: ${result.durationMs}ms
 
 ## Journey
 
 Status: ${result.journey.status}
 Exit code: ${result.journey.exitCode ?? "none"}
+Timed out: ${result.journey.timedOut ? "yes" : "no"}
+Command: ${formatCommand(result)}
+
+## Source
+
+${source}
+
+## Hooks
+
+${hooks}
 
 ## Failure
 
-${result.failure.summary ?? "None"}
+Summary: ${result.failure.summary ?? "None"}
+Command: ${result.failure.failedCommand ?? "None"}
+Selector: ${result.failure.failedSelector ?? "None"}
+Message: ${result.failure.message ?? "None"}
+
+## Diagnosis
+
+Class: ${result.diagnosis.failureClass}
+Domain: ${result.diagnosis.failureDomain}
+Suspicious changes: ${result.diagnosis.suspiciousChanges.length}
+Matched signatures: ${result.diagnosis.matchedSignatures.length}
+
+## Lifecycle Phases
+
+${phases}
+
+## Evidence
+
+${evidence}
 
 ## Suggested Action
 
@@ -350,12 +352,17 @@ ${result.diagnosis.suggestedAction}
 `;
 }
 
-function renderCompact(
+export function renderCompact(
   result: FinalResult,
-  reportPath: string,
-  jsonPath: string,
+  reportPath = result.reports.markdown,
+  jsonPath = result.reports.json,
 ): string {
-  const title = result.status === "passed" ? "PASSED" : "FAILED";
+  const title =
+    result.status === "passed"
+      ? "PASSED"
+      : result.status === "interrupted"
+        ? "INTERRUPTED"
+        : "FAILED";
   return `${title} ${result.flow.name ?? result.flow.path}
 Outcome: ${result.outcome}
 
@@ -364,9 +371,13 @@ JSON: ${jsonPath}
 `;
 }
 
-function totalDuration(lifecycle: VerifyLifecycleResult): number {
-  return lifecycle.phases.reduce(
-    (total, phase) => total + (phase.durationMs ?? 0),
-    0,
-  );
+function formatCommand(result: FinalResult): string {
+  if (result.journey.command === null) {
+    return "not run";
+  }
+
+  return [
+    result.journey.command.executable,
+    ...result.journey.command.arguments,
+  ].join(" ");
 }
