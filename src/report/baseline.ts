@@ -10,6 +10,7 @@ import { MOBTRACE_VERSION } from "../version.js";
 export interface BaselineReportResult {
   readonly compact: string;
   readonly jsonPath: string;
+  readonly markdown: string;
   readonly markdownPath: string;
   readonly result: FinalResult;
 }
@@ -62,6 +63,7 @@ export async function generateBaselineReports(
   return {
     compact: renderCompact(result, markdownPath, jsonPath),
     jsonPath,
+    markdown,
     markdownPath,
     result,
   };

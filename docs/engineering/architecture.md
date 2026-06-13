@@ -33,6 +33,7 @@ src/commands/
   doctor.ts
   init.ts
   io.ts
+  report.ts
 src/configuration/
   duration.ts
   errors.ts
@@ -50,6 +51,7 @@ src/process/
   redaction.ts
 src/report/
   baseline.ts
+  history.ts
 src/runner/
   maestro.ts
 src/source/
@@ -75,6 +77,7 @@ test/process-execution.test.ts
 test/program.test.ts
 test/project-map.test.ts
 test/report-baseline.test.ts
+test/report-command.test.ts
 test/report-contract.test.ts
 test/run-id.test.ts
 test/source-git.test.ts

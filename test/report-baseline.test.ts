@@ -56,6 +56,20 @@ describe("baseline report generation", () => {
       sourceRunCompletedAt: "2026-06-12T10:00:02.000Z",
       status: "failed",
     });
+    expect(reports.result.evidence).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "runner-stderr",
+          redacted: false,
+          sensitive: true,
+        }),
+        expect.objectContaining({
+          id: "normalized-evidence",
+          redacted: true,
+          sensitive: false,
+        }),
+      ]),
+    );
     expect(markdown).toContain("## Outcome");
     expect(markdown).toContain("## Run Metadata");
     expect(markdown).toContain("## Journey");
@@ -75,6 +89,73 @@ Outcome: journey-failed
 Report: report.md
 JSON: result.json
 `);
+  });
+
+  it.each([
+    {
+      exitCode: 3,
+      journeyStatus: "not-run" as const,
+      outcome: "infrastructure-failed" as const,
+      status: "error" as const,
+    },
+    {
+      exitCode: 4,
+      journeyStatus: "passed" as const,
+      outcome: "cleanup-failed" as const,
+      status: "error" as const,
+    },
+    {
+      exitCode: 130,
+      journeyStatus: "interrupted" as const,
+      outcome: "interrupted" as const,
+      status: "interrupted" as const,
+    },
+  ])("generates a valid $outcome report", async ({
+    exitCode,
+    journeyStatus,
+    outcome,
+    status,
+  }) => {
+    const root = await mkdtemp(join(tmpdir(), "mobtrace-report-outcome-"));
+    temporaryDirectories.push(root);
+    const store = new ArtifactStore(join(root, "runs"));
+    const runId = "20260612T100000Z-d00002";
+    await store.initializeRun({
+      flowName: "login",
+      flowPath: ".maestro/login.yaml",
+      flowResolution: "configured",
+      now: new Date("2026-06-12T10:00:00.000Z"),
+      runId,
+    });
+    await store.updateManifest(
+      runId,
+      { state: "partial" },
+      new Date("2026-06-12T10:00:02.000Z"),
+    );
+    const base = fixtureEvidence();
+    const evidence = normalizedEvidenceSchema.parse({
+      ...base,
+      run: {
+        ...base.run,
+        exitCode,
+        outcome,
+        runId,
+        status,
+      },
+      journey: {
+        ...base.journey,
+        exitCode: journeyStatus === "passed" ? 0 : null,
+        status: journeyStatus,
+      },
+    });
+
+    const reports = await generateBaselineReports(store, evidence);
+
+    expect(reports.result).toMatchObject({
+      exitCode,
+      outcome,
+      status,
+    });
   });
 });
 

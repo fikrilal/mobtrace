@@ -4,6 +4,7 @@ import { MobtraceCommandError } from "./cli-error.js";
 import { runDoctorCommand } from "./commands/doctor.js";
 import { runInitCommand } from "./commands/init.js";
 import type { CommandIo } from "./commands/io.js";
+import { runReportCommand } from "./commands/report.js";
 import { runVerifyCommand } from "./commands/verify.js";
 import { MOBTRACE_VERSION } from "./version.js";
 
@@ -120,6 +121,39 @@ export function createProgram(options: ProgramOptions = {}): Command {
             flow: commandOptions.flow,
             json: commandOptions.json,
             project: globalOptions.project,
+          },
+          io,
+        );
+      },
+    );
+
+  program
+    .command("report")
+    .description("Read or regenerate a retained MobTrace report.")
+    .argument(
+      "[run]",
+      "Run identifier, artifact directory, or latest.",
+      "latest",
+    )
+    .option("--json", "Print only the machine-readable result.")
+    .option("--full", "Print the full Markdown report.")
+    .action(
+      async (
+        run: string,
+        commandOptions: { full?: boolean; json?: boolean },
+      ) => {
+        const globalOptions = program.opts<{
+          config?: string;
+          project?: string;
+        }>();
+
+        await runReportCommand(
+          {
+            config: globalOptions.config,
+            full: commandOptions.full,
+            json: commandOptions.json,
+            project: globalOptions.project,
+            run,
           },
           io,
         );
