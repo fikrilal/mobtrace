@@ -10,6 +10,7 @@ import {
 import { normalizeLifecycleEvidence } from "../evidence/normalized.js";
 import { generateBaselineReports } from "../report/baseline.js";
 import { MaestroRunner } from "../runner/maestro.js";
+import { createRunRedactor } from "../security/redaction.js";
 import { runVerifyLifecycle } from "../verify/lifecycle.js";
 import type { CommandIo } from "./io.js";
 
@@ -49,7 +50,11 @@ export async function runVerifyCommand(
     lifecycle.flow.ownership,
   );
   await writeDiagnosisContext(artifactStore, lifecycle.runId, diagnosisContext);
-  const normalized = await normalizeLifecycleEvidence(artifactStore, lifecycle);
+  const normalized = await normalizeLifecycleEvidence(
+    artifactStore,
+    lifecycle,
+    createRunRedactor(diagnosisContext.redaction, lifecycle.flow.environment),
+  );
   const reports = await generateBaselineReports(
     artifactStore,
     normalized.evidence,

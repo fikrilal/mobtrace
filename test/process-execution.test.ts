@@ -147,4 +147,14 @@ describe("redaction", () => {
 
     expect(redactor.redact("token=secret")).toBe("[REDACTED]");
   });
+
+  it("redacts every occurrence even when a configured pattern is not global", () => {
+    const redactor = new Redactor({
+      patterns: [{ name: "token", regex: /token=[^\s]+/u }],
+    });
+
+    expect(redactor.redact("token=one token=two")).toBe(
+      "[REDACTED] [REDACTED]",
+    );
+  });
 });

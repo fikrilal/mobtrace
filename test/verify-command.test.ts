@@ -243,4 +243,73 @@ describe("verify command", () => {
       "Compare the selector with the final visible hierarchy.",
     );
   });
+
+  it("excludes known secrets from every generated output surface", async () => {
+    const secret = "fixture-secret-123";
+    const root = await createProject(
+      1,
+      `error password=${secret}\nFailed command: inputText\nBearer ${secret}`,
+    );
+    process.env.TEST_SECRET = secret;
+    await writeFile(
+      join(root, "mobtrace.yaml"),
+      `version: 1
+maestro:
+  executable: ${join(root, "maestro")}
+diagnosis:
+  redact:
+    environment: [TEST_SECRET]
+flows:
+  login:
+    path: .maestro/login.yaml
+    environment:
+      LOGIN_SECRET:
+        fromEnv: TEST_SECRET
+`,
+      "utf8",
+    );
+
+    try {
+      const result = await runProgram([
+        "--project",
+        root,
+        "verify",
+        "--flow",
+        "login",
+      ]);
+      const [runId] = await readdir(join(root, ".mobtrace/runs"));
+      const runDirectory = join(root, ".mobtrace/runs", runId ?? "");
+      const generated = await Promise.all(
+        [
+          "evidence/normalized.json",
+          "result.json",
+          "report.md",
+          "evidence/diagnosis-context.json",
+        ].map((path) => readFile(join(runDirectory, path), "utf8")),
+      );
+
+      expect(result.stdout).not.toContain(secret);
+      expect(generated.join("\n")).not.toContain(secret);
+      expect(generated.join("\n")).toContain("[REDACTED]");
+      expect(
+        await readFile(join(runDirectory, "runner/stderr.log"), "utf8"),
+      ).toContain(secret);
+      const report = JSON.parse(generated[1] ?? "{}") as {
+        evidence: Array<{
+          id: string;
+          redacted: boolean;
+          sensitive: boolean;
+        }>;
+      };
+      expect(report.evidence).toContainEqual(
+        expect.objectContaining({
+          id: "runner-stderr",
+          redacted: false,
+          sensitive: true,
+        }),
+      );
+    } finally {
+      delete process.env.TEST_SECRET;
+    }
+  });
 });

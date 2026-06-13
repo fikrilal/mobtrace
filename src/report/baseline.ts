@@ -7,6 +7,10 @@ import {
 import type { DiagnosisContext } from "../diagnosis/context.js";
 import { diagnose } from "../diagnosis/diagnose.js";
 import type { NormalizedEvidence } from "../evidence/normalized.js";
+import {
+  createPolicyRedactor,
+  redactStructured,
+} from "../security/redaction.js";
 import { MOBTRACE_VERSION } from "../version.js";
 
 export interface BaselineReportResult {
@@ -25,32 +29,37 @@ export async function generateBaselineReports(
 ): Promise<BaselineReportResult> {
   const generatedAt = now.toISOString();
   const diagnosis = await diagnose(artifactStore, evidence, context);
-  const result = finalResultSchema.parse({
-    schemaVersion: 1,
-    runId: evidence.run.runId,
-    mobtraceVersion: MOBTRACE_VERSION,
-    createdAt: evidence.run.createdAt,
-    completedAt: evidence.run.completedAt,
-    durationMs: evidence.run.durationMs,
-    generatedAt,
-    generatedByVersion: MOBTRACE_VERSION,
-    sourceRunCompletedAt: evidence.run.completedAt,
-    status: evidence.run.status,
-    outcome: evidence.run.outcome,
-    exitCode: evidence.run.exitCode,
-    flow: evidence.flow,
-    device: evidence.device,
-    source: evidence.source,
-    journey: evidence.journey,
-    phases: evidence.phases,
-    failure: evidence.failure,
-    diagnosis,
-    evidence: evidenceIndex(evidence),
-    reports: {
-      markdown: "report.md",
-      json: "result.json",
-    },
-  });
+  const result = finalResultSchema.parse(
+    redactStructured(
+      {
+        schemaVersion: 1,
+        runId: evidence.run.runId,
+        mobtraceVersion: MOBTRACE_VERSION,
+        createdAt: evidence.run.createdAt,
+        completedAt: evidence.run.completedAt,
+        durationMs: evidence.run.durationMs,
+        generatedAt,
+        generatedByVersion: MOBTRACE_VERSION,
+        sourceRunCompletedAt: evidence.run.completedAt,
+        status: evidence.run.status,
+        outcome: evidence.run.outcome,
+        exitCode: evidence.run.exitCode,
+        flow: evidence.flow,
+        device: evidence.device,
+        source: evidence.source,
+        journey: evidence.journey,
+        phases: evidence.phases,
+        failure: evidence.failure,
+        diagnosis,
+        evidence: evidenceIndex(evidence),
+        reports: {
+          markdown: "report.md",
+          json: "result.json",
+        },
+      },
+      createPolicyRedactor(context.redaction),
+    ),
+  );
 
   const markdown = renderMarkdown(result);
   const markdownPath = await artifactStore.writeText(

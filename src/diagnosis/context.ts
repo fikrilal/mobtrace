@@ -9,6 +9,10 @@ import {
   failureClassSchema,
   failureDomainSchema,
 } from "../contracts/report.js";
+import {
+  createGeneratedRedactionPolicy,
+  generatedRedactionPolicySchema,
+} from "../security/redaction.js";
 
 const flagsSchema = z
   .string()
@@ -72,6 +76,7 @@ export const diagnosisContextSchema = z.object({
   schemaVersion: z.literal(1),
   ruleSetVersion: z.literal(1),
   ownership: z.array(z.string().min(1)),
+  redaction: generatedRedactionPolicySchema,
   signatures: z.array(diagnosisSignatureSchema),
 });
 
@@ -102,6 +107,7 @@ export async function createDiagnosisContext(
 
   return diagnosisContextSchema.parse({
     ownership: [...ownership],
+    redaction: createGeneratedRedactionPolicy(config),
     ruleSetVersion: 1,
     schemaVersion: 1,
     signatures,

@@ -10,6 +10,8 @@ import {
   runIdSchema,
 } from "../contracts/report.js";
 import { extractFailureFacts } from "../diagnosis/facts.js";
+import type { Redactor } from "../process/redaction.js";
+import { redactStructured } from "../security/redaction.js";
 import type { VerifyLifecycleResult } from "../verify/lifecycle.js";
 
 const timestampSchema = z
@@ -130,60 +132,66 @@ export interface NormalizeEvidenceResult {
 export async function normalizeLifecycleEvidence(
   artifactStore: ArtifactStore,
   lifecycle: VerifyLifecycleResult,
+  redactor: Redactor,
 ): Promise<NormalizeEvidenceResult> {
   const manifest = await artifactStore.readManifest(lifecycle.runId);
   if (manifest.completedAt === null) {
     throw new Error("Cannot normalize a run before lifecycle completion.");
   }
 
-  const evidence = normalizedEvidenceSchema.parse({
-    schemaVersion: 1,
-    run: {
-      completedAt: manifest.completedAt,
-      createdAt: manifest.createdAt,
-      durationMs: Math.max(
-        0,
-        new Date(manifest.completedAt).getTime() -
-          new Date(manifest.createdAt).getTime(),
-      ),
-      exitCode: lifecycle.exitCode,
-      mobtraceVersion: manifest.mobtraceVersion,
-      outcome: lifecycle.outcome,
-      runId: lifecycle.runId,
-      status: lifecycle.status,
-    },
-    flow: {
-      name: lifecycle.flow.flowName,
-      path: lifecycle.flow.flowPathRelative,
-      resolution: lifecycle.flow.resolution,
-      runner: "maestro",
-    },
-    device: {
-      available: null,
-      id: lifecycle.flow.device ?? null,
-      platform: "unknown",
-    },
-    source: normalizeSource(lifecycle),
-    journey: lifecycle.journey,
-    phases: lifecycle.phases,
-    hooks: lifecycle.hooks.map((hook) => ({
-      durationMs: hook.durationMs,
-      endedAt: hook.endedAt,
-      error: hook.error,
-      exitCode: hook.exitCode,
-      exportedEnvironmentKeys: hook.exportedEnvironmentKeys,
-      id: hook.id,
-      phase: hook.phase,
-      result: hook.result,
-      scope: hook.scope,
-      startedAt: hook.startedAt,
-      status: hook.status,
-      stderr: hook.stderr,
-      stdout: hook.stdout,
-      timedOut: hook.timedOut,
-    })),
-    failure: await extractFailureFacts(artifactStore, lifecycle),
-  });
+  const evidence = normalizedEvidenceSchema.parse(
+    redactStructured(
+      {
+        schemaVersion: 1,
+        run: {
+          completedAt: manifest.completedAt,
+          createdAt: manifest.createdAt,
+          durationMs: Math.max(
+            0,
+            new Date(manifest.completedAt).getTime() -
+              new Date(manifest.createdAt).getTime(),
+          ),
+          exitCode: lifecycle.exitCode,
+          mobtraceVersion: manifest.mobtraceVersion,
+          outcome: lifecycle.outcome,
+          runId: lifecycle.runId,
+          status: lifecycle.status,
+        },
+        flow: {
+          name: lifecycle.flow.flowName,
+          path: lifecycle.flow.flowPathRelative,
+          resolution: lifecycle.flow.resolution,
+          runner: "maestro",
+        },
+        device: {
+          available: null,
+          id: lifecycle.flow.device ?? null,
+          platform: "unknown",
+        },
+        source: normalizeSource(lifecycle),
+        journey: lifecycle.journey,
+        phases: lifecycle.phases,
+        hooks: lifecycle.hooks.map((hook) => ({
+          durationMs: hook.durationMs,
+          endedAt: hook.endedAt,
+          error: hook.error,
+          exitCode: hook.exitCode,
+          exportedEnvironmentKeys: hook.exportedEnvironmentKeys,
+          id: hook.id,
+          phase: hook.phase,
+          result: hook.result,
+          scope: hook.scope,
+          startedAt: hook.startedAt,
+          status: hook.status,
+          stderr: hook.stderr,
+          stdout: hook.stdout,
+          timedOut: hook.timedOut,
+        })),
+        failure: await extractFailureFacts(artifactStore, lifecycle),
+      },
+      redactor,
+    ),
+  );
 
   return {
     evidence,

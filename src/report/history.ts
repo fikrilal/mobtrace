@@ -215,6 +215,11 @@ async function readDiagnosisContext(
   } catch (_error) {
     return {
       ownership: [],
+      redaction: {
+        environmentNames: [],
+        patterns: [],
+        schemaVersion: 1,
+      },
       ruleSetVersion: 1,
       schemaVersion: 1,
       signatures: [],

@@ -223,6 +223,7 @@ async function createRetainedRun(
 
 const emptyContext: DiagnosisContext = {
   ownership: [],
+  redaction: { environmentNames: [], patterns: [], schemaVersion: 1 },
   ruleSetVersion: 1,
   schemaVersion: 1,
   signatures: [],
