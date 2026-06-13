@@ -217,4 +217,37 @@ exit 12`,
     expect(resultJson).toContain("SECRET_TOKEN");
     expect(resultJson).not.toContain("super-secret");
   });
+
+  it("retains malformed prepare output as a hook failure", async () => {
+    const root = await createTempDir();
+    const { artifactsDir, store } = await createRun(root);
+    const projectPrepare = await createExecutable(
+      root,
+      "project-prepare",
+      `printf '{"environment":' > "$MOBTRACE_HOOK_OUTPUT"`,
+    );
+
+    const result = await executeHookLifecycle({
+      artifactStore: store,
+      artifactsDir,
+      flowName: "login",
+      flowPath: ".maestro/login.yaml",
+      journeyAttempted: false,
+      journeyStatus: "not-run",
+      projectPrepare: { command: [projectPrepare] },
+      projectRoot: root,
+      runId: "20260612T000000Z-b00001",
+    });
+    const retained = JSON.parse(
+      await readFile(
+        join(artifactsDir, "hooks/project-prepare/result.json"),
+        "utf8",
+      ),
+    ) as { error: string; status: string };
+
+    expect(result.failed).toBe(true);
+    expect(result.exportedEnvironment.size).toBe(0);
+    expect(retained.status).toBe("failed");
+    expect(retained.error).toContain("Invalid hook output");
+  });
 });

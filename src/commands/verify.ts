@@ -49,6 +49,11 @@ async function executeVerify(
     ...(options.config === undefined ? {} : { configPath: options.config }),
     ...(options.project === undefined ? {} : { projectPath: options.project }),
   });
+  const diagnosisContext = await createDiagnosisContext(
+    projectRoot,
+    configuration.config,
+    configuration.config?.flows?.[options.flow]?.owns ?? [],
+  );
   const lifecycle = await runVerifyLifecycle({
     abortSignal,
     configuration,
@@ -62,11 +67,6 @@ async function executeVerify(
     ...(options.device === undefined ? {} : { device: options.device }),
   });
   const artifactStore = new ArtifactStore(dirname(lifecycle.runDirectory));
-  const diagnosisContext = await createDiagnosisContext(
-    projectRoot,
-    configuration.config,
-    lifecycle.flow.ownership,
-  );
   await writeDiagnosisContext(artifactStore, lifecycle.runId, diagnosisContext);
   const normalized = await normalizeLifecycleEvidence(
     artifactStore,

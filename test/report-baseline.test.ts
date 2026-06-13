@@ -173,6 +173,35 @@ JSON: result.json
       status,
     });
   });
+
+  it("preserves core diagnosis when optional source ranking evidence is corrupt", async () => {
+    const root = await mkdtemp(join(tmpdir(), "mobtrace-report-corrupt-"));
+    temporaryDirectories.push(root);
+    const store = new ArtifactStore(join(root, "runs"));
+    const runId = "20260612T100000Z-d00001";
+    await store.initializeRun({
+      flowName: "login",
+      flowPath: ".maestro/login.yaml",
+      flowResolution: "configured",
+      runId,
+    });
+    await store.writeText(runId, "source/changed-files.json", "{not-json");
+    await store.writeText(runId, "source/diff.patch", "malformed diff");
+    await store.updateManifest(runId, { state: "completed" });
+
+    const reports = await generateBaselineReports(
+      store,
+      fixtureEvidence(),
+      emptyContext,
+    );
+
+    expect(reports.result.failure.failedSelector).toBe("home_screen");
+    expect(reports.result.diagnosis).toMatchObject({
+      failureClass: "selector-mismatch",
+      failureDomain: "test-harness",
+      suspiciousChanges: [],
+    });
+  });
 });
 
 function fixtureEvidence(): NormalizedEvidence {

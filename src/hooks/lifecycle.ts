@@ -224,12 +224,19 @@ export async function executeHook(
         : parseDuration(input.definition.hook.timeout).milliseconds,
   });
 
-  const exported =
+  let exported = new Map<string, string>();
+  let outputError: string | null = null;
+  if (
     input.definition.phase === "prepare" &&
     result.exitCode === 0 &&
     !result.timedOut
-      ? await readHookOutput(hookOutput)
-      : new Map<string, string>();
+  ) {
+    try {
+      exported = new Map(await readHookOutput(hookOutput));
+    } catch (error) {
+      outputError = `Invalid hook output: ${messageFor(error)}`;
+    }
+  }
   await rm(hookOutput, { force: true }).catch(() => undefined);
   await rm(outputDir, { force: true, recursive: true }).catch(() => undefined);
 
@@ -244,13 +251,15 @@ export async function executeHook(
     result.stderr,
   );
   const status =
-    result.exitCode === 0 && !result.timedOut ? "passed" : "failed";
+    result.exitCode === 0 && !result.timedOut && outputError === null
+      ? "passed"
+      : "failed";
   const output = {
     schemaVersion: 1,
     command: result.command,
     durationMs: result.durationMs,
     endedAt: result.endedAt,
-    error: result.error,
+    error: outputError ?? result.error,
     exitCode: result.exitCode,
     exportedEnvironmentKeys: [...exported.keys()].sort(),
     id: input.definition.id,
@@ -275,7 +284,7 @@ export async function executeHook(
   return {
     durationMs: result.durationMs,
     endedAt: result.endedAt,
-    error: result.error,
+    error: output.error,
     exitCode: result.exitCode,
     exportedEnvironment: exported,
     exportedEnvironmentKeys: output.exportedEnvironmentKeys,
@@ -389,4 +398,8 @@ async function readHookOutput(
 
 function defaultTimeout(phase: HookPhase): number {
   return phase === "prepare" ? 60_000 : 60_000;
+}
+
+function messageFor(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error.";
 }

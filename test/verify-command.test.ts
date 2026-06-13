@@ -312,4 +312,29 @@ flows:
       delete process.env.TEST_SECRET;
     }
   });
+
+  it("validates external signature files before starting mobile execution", async () => {
+    const root = await createProject(0);
+    await writeFile(join(root, "signatures.json"), "{not-json", "utf8");
+    await writeFile(
+      join(root, "mobtrace.yaml"),
+      `version: 1
+maestro:
+  executable: ${join(root, "maestro")}
+diagnosis:
+  signatures: [signatures.json]
+flows:
+  login:
+    path: .maestro/login.yaml
+`,
+      "utf8",
+    );
+
+    await expect(
+      runProgram(["--project", root, "verify", "--flow", "login"]),
+    ).rejects.toThrow();
+    await expect(readdir(join(root, ".mobtrace/runs"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+  });
 });
