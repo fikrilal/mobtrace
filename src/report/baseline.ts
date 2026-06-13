@@ -283,6 +283,11 @@ Reason: ${result.source.reason}`;
   const evidence = result.evidence
     .map((item) => `- [${item.id}](${item.path}): ${item.description}`)
     .join("\n");
+  const sensitiveEvidence = result.evidence.filter((item) => item.sensitive);
+  const evidenceWarning =
+    sensitiveEvidence.length === 0
+      ? "No evidence files are marked sensitive."
+      : `Warning: ${sensitiveEvidence.length} referenced evidence file(s) may contain unredacted project-controlled data.`;
   const suspiciousChanges =
     result.diagnosis.suspiciousChanges.length === 0
       ? "None"
@@ -363,6 +368,8 @@ ${signatures}
 ${phases}
 
 ## Evidence
+
+${evidenceWarning}
 
 ${evidence}
 

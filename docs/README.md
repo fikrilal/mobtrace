@@ -30,6 +30,8 @@ unless explicitly adopted.
 - `docs/engineering/guardrails.md` - mechanical enforcement strategy
 - `docs/engineering/testing-strategy.md` - test layers and evidence expectations
 - `docs/engineering/parallel-agent-workflow.md` - concurrent agent isolation
+- `docs/engineering/platform-support.md` - supported hosts, reliability
+  evidence, and local-only data boundary
 
 ## Execution Plans
 

@@ -53,6 +53,8 @@ src/evidence/
   normalized.ts
 src/hooks/
   lifecycle.ts
+src/platform/
+  support.ts
 src/process/
   execute.ts
   redaction.ts
@@ -61,6 +63,8 @@ src/report/
   history.ts
 src/runner/
   maestro.ts
+src/security/
+  redaction.ts
 src/source/
   git.ts
 src/verify/
@@ -83,12 +87,14 @@ test/diagnosis-ranking.test.ts
 test/hook-lifecycle.test.ts
 test/maestro-runner.test.ts
 test/package-smoke.test.ts
+test/platform-support.test.ts
 test/process-execution.test.ts
 test/program.test.ts
 test/project-map.test.ts
 test/report-baseline.test.ts
 test/report-command.test.ts
 test/report-contract.test.ts
+test/reliability-smoke.test.ts
 test/run-id.test.ts
 test/source-git.test.ts
 test/verify-command.test.ts

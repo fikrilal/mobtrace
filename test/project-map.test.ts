@@ -27,6 +27,7 @@ async function createMinimalProject(): Promise<string> {
     "docs/engineering/harness-proposal.md",
     "docs/engineering/implementation-plan.md",
     "docs/engineering/parallel-agent-workflow.md",
+    "docs/engineering/platform-support.md",
     "docs/engineering/proposal.md",
     "docs/engineering/tech-stack.md",
     "docs/engineering/testing-strategy.md",

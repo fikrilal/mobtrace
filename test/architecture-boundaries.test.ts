@@ -33,4 +33,16 @@ describe("source boundaries", () => {
       expect(source, file).not.toContain('from "commander"');
     }
   });
+
+  it("does not add a hosted-service or network client boundary", async () => {
+    const files = await listTypeScriptFiles(resolve("src"));
+
+    for (const file of files) {
+      const source = await readFile(file, "utf8");
+      expect(source, file).not.toMatch(
+        /from\s+["']node:(?:http|https|http2|net|tls|dgram)["']/,
+      );
+      expect(source, file).not.toMatch(/\bfetch\s*\(/u);
+    }
+  });
 });

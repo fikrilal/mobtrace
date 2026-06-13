@@ -17,6 +17,7 @@ import {
   type DoctorResult,
   doctorResultSchema,
 } from "../contracts/report.js";
+import { platformSupport } from "../platform/support.js";
 import { MOBTRACE_VERSION } from "../version.js";
 import type { CommandIo } from "./io.js";
 
@@ -56,6 +57,17 @@ async function collectDoctorChecks(
 ): Promise<DoctorContext> {
   const checks: DoctorCheck[] = [];
   const projectRoot = resolveProjectRoot(options.project, options.cwd);
+  const host = platformSupport();
+  checks.push(
+    host.supported
+      ? passedCheck("platform", true, `${host.platform}: ${host.reason}`)
+      : failedCheck(
+          "platform",
+          true,
+          host.reason,
+          "Run MobTrace on a supported Linux or macOS host.",
+        ),
+  );
 
   if (!(await isDirectory(projectRoot))) {
     checks.push(
