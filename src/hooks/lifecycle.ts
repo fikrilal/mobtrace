@@ -259,7 +259,11 @@ export async function executeHook(
     startedAt: result.startedAt,
     status,
     stderr: stderrPath,
+    stderrBytes: result.stderrBytes,
+    stderrTruncated: result.stderrTruncated,
     stdout: stdoutPath,
+    stdoutBytes: result.stdoutBytes,
+    stdoutTruncated: result.stdoutTruncated,
     timedOut: result.timedOut,
   };
   const resultPath = await input.artifactStore.writeJson(

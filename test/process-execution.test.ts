@@ -111,6 +111,34 @@ describe("process execution", () => {
     expect(result.signal).toBe("SIGTERM");
   });
 
+  it("bounds streams while retaining startup and failure context", async () => {
+    const root = await createTempDir();
+    const executable = await createExecutable(
+      root,
+      "large-output",
+      'printf "START-1234567890-END"',
+    );
+
+    const result = await executeProcess({
+      executable,
+      maxOutputBytes: 10,
+    });
+
+    expect(result.stdoutBytes).toBe(20);
+    expect(result.stdoutTruncated).toBe(true);
+    expect(result.stdout).toContain("START");
+    expect(result.stdout).toContain("0-END");
+    expect(result.stdout).toContain("retained 10 of 20 bytes");
+    expect(result.stderrBytes).toBe(0);
+    expect(result.stderrTruncated).toBe(false);
+  });
+
+  it("rejects invalid output limits before spawning", async () => {
+    await expect(
+      executeProcess({ executable: "unused", maxOutputBytes: 0 }),
+    ).rejects.toThrow("positive safe integer");
+  });
+
   it("redacts command summaries and stream display copies", async () => {
     const root = await createTempDir();
     const executable = await createExecutable(
