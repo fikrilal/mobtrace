@@ -4,7 +4,7 @@
   "description": "Diff-aware mobile regression evidence and diagnosis for coding agents.",
   "type": "module",
   "bin": {
-    "mobtrace": "./dist/cli.js"
+    "mobtrace": "dist/cli.js"
   },
   "files": [
     "CHANGELOG.md",
