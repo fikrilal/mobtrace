@@ -1,9 +1,17 @@
-import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+  chmod,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 import { MobtraceCommandError } from "../src/cli-error.js";
+import { executeProcess } from "../src/process/execute.js";
 import { createProgram } from "../src/program.js";
 
 interface CapturedRun {
@@ -23,6 +31,15 @@ async function createProject(): Promise<string> {
 async function makeExecutable(path: string): Promise<void> {
   await writeFile(path, "#!/usr/bin/env sh\nexit 0\n", "utf8");
   await chmod(path, 0o755);
+}
+
+async function git(root: string, args: readonly string[]): Promise<void> {
+  const result = await executeProcess({
+    args,
+    cwd: root,
+    executable: "git",
+  });
+  expect(result.exitCode).toBe(0);
 }
 
 async function runProgram(args: string[]): Promise<CapturedRun> {
@@ -117,6 +134,23 @@ describe("MobTrace program", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
     expect(result.stdout).toContain(`Created ${join(root, "mobtrace.yaml")}`);
+    expect(result.stdout).toContain(`Created ${join(root, ".gitignore")}`);
+    expect(await readFile(join(root, ".gitignore"), "utf8")).toBe(
+      ".mobtrace/\n",
+    );
+  });
+
+  it("does not duplicate an existing MobTrace gitignore entry", async () => {
+    const root = await createProject();
+    await writeFile(join(root, ".gitignore"), ".mobtrace/\n", "utf8");
+
+    const result = await runProgram(["--project", root, "init"]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).not.toContain(`Updated ${join(root, ".gitignore")}`);
+    expect(await readFile(join(root, ".gitignore"), "utf8")).toBe(
+      ".mobtrace/\n",
+    );
   });
 
   it("refuses to replace configuration unless forced", async () => {
@@ -163,6 +197,48 @@ flows:
     } finally {
       process.env.PATH = originalPath;
     }
+  });
+
+  it("warns when the artifact root is not ignored by Git", async () => {
+    const root = await createProject();
+    await git(root, ["init"]);
+    await mkdir(join(root, "bin"), { recursive: true });
+    await mkdir(join(root, ".maestro"), { recursive: true });
+    await makeExecutable(join(root, "bin/maestro"));
+    await writeFile(join(root, ".maestro/login.yaml"), "appId: test\n", "utf8");
+    await writeFile(
+      join(root, "mobtrace.yaml"),
+      `version: 1
+maestro:
+  executable: ./bin/maestro
+flows:
+  login:
+    path: .maestro/login.yaml
+`,
+      "utf8",
+    );
+
+    const result = await runProgram(["--project", root, "doctor", "--json"]);
+    const parsed = JSON.parse(result.stdout) as {
+      checks: Array<{
+        id: string;
+        required: boolean;
+        status: string;
+        summary: string;
+      }>;
+      ready: boolean;
+    };
+
+    expect(result.exitCode).toBe(0);
+    expect(parsed.ready).toBe(true);
+    expect(parsed.checks).toContainEqual(
+      expect.objectContaining({
+        id: "gitignore",
+        required: false,
+        status: "failed",
+        summary: ".mobtrace/runs is not ignored by Git.",
+      }),
+    );
   });
 
   it("returns invalid-config exit code while preserving doctor JSON", async () => {

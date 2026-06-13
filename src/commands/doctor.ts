@@ -1,6 +1,6 @@
 import { constants } from "node:fs";
 import { access, mkdir, stat } from "node:fs/promises";
-import { dirname, delimiter, isAbsolute, resolve } from "node:path";
+import { dirname, delimiter, isAbsolute, relative, resolve } from "node:path";
 
 import { MobtraceCommandError } from "../cli-error.js";
 import {
@@ -18,6 +18,7 @@ import {
   doctorResultSchema,
 } from "../contracts/report.js";
 import { platformSupport } from "../platform/support.js";
+import { executeProcess } from "../process/execute.js";
 import { MOBTRACE_VERSION } from "../version.js";
 import type { CommandIo } from "./io.js";
 
@@ -145,6 +146,7 @@ async function collectDoctorChecks(
   checks.push(await flowCheck(projectRoot, config));
   checks.push(await hooksCheck(projectRoot, config));
   checks.push(await artifactsCheck(projectRoot, config));
+  checks.push(await gitignoreCheck(projectRoot, config));
   checks.push(deviceCheck(options.device));
 
   return { checks, projectRoot };
@@ -290,6 +292,87 @@ async function artifactsCheck(
         : "Choose a writable artifact root.",
     );
   }
+}
+
+async function gitignoreCheck(
+  projectRoot: string,
+  config: MobtraceConfig | null,
+): Promise<DoctorCheck> {
+  const artifactRoot = resolveProjectPath(
+    projectRoot,
+    config?.artifacts?.root ?? ".mobtrace/runs",
+  );
+  const gitRoot = await gitWorktreeRoot(projectRoot);
+  if (gitRoot === null) {
+    return skippedCheck(
+      "gitignore",
+      false,
+      "Project root is not inside a Git worktree.",
+    );
+  }
+
+  const relativeArtifactRoot = toGitRelative(gitRoot, artifactRoot);
+  if (relativeArtifactRoot === null) {
+    return skippedCheck(
+      "gitignore",
+      false,
+      "Artifact root is outside the Git worktree.",
+    );
+  }
+
+  const ignored = await gitPathIgnored(projectRoot, relativeArtifactRoot);
+  if (ignored) {
+    return passedCheck(
+      "gitignore",
+      false,
+      `${relativeArtifactRoot} is ignored`,
+    );
+  }
+
+  return failedCheck(
+    "gitignore",
+    false,
+    `${relativeArtifactRoot} is not ignored by Git.`,
+    "Add `.mobtrace/` to .gitignore, or ignore the configured artifacts.root.",
+  );
+}
+
+async function gitWorktreeRoot(projectRoot: string): Promise<string | null> {
+  const result = await executeProcess({
+    args: ["rev-parse", "--show-toplevel"],
+    cwd: projectRoot,
+    executable: "git",
+    timeoutMs: 5000,
+  });
+  if (result.exitCode !== 0) {
+    return null;
+  }
+
+  const root = result.stdout.trim();
+  return root.length === 0 ? null : root;
+}
+
+async function gitPathIgnored(
+  projectRoot: string,
+  path: string,
+): Promise<boolean> {
+  const result = await executeProcess({
+    args: ["check-ignore", "-q", "--", path],
+    cwd: projectRoot,
+    executable: "git",
+    timeoutMs: 5000,
+  });
+
+  return result.exitCode === 0;
+}
+
+function toGitRelative(gitRoot: string, path: string): string | null {
+  const value = relative(gitRoot, path).replaceAll("\\", "/");
+  if (value === "") {
+    return ".";
+  }
+
+  return value.startsWith("../") || value === ".." ? null : value;
 }
 
 async function commandCheck(

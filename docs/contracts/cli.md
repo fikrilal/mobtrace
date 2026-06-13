@@ -107,7 +107,10 @@ mobtrace init [--force]
 2. detect whether a MobTrace configuration already exists
 3. refuse to overwrite an existing configuration unless `--force` is present
 4. create a minimal configuration that documents the next required action
-5. print the created configuration path
+5. create `.gitignore` with `.mobtrace/` when no `.gitignore` exists
+6. append `.mobtrace/` to `.gitignore` when the entry is missing
+7. avoid duplicating an existing `.mobtrace` ignore entry
+8. print created or updated paths
 
 `init` must not prompt before replacement. An existing configuration is
 replaced only when `--force` is explicitly present.
@@ -161,6 +164,7 @@ mobtrace doctor [--device <id>] [--json]
 - configured journey existence
 - configured hook command validity
 - artifact directory writability
+- artifact root Git ignore status
 - requested device availability
 
 A check that does not apply to the current configuration should be marked as

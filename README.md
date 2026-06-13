@@ -34,6 +34,13 @@ mobtrace init
 mobtrace doctor
 ```
 
+`init` also creates or updates `.gitignore` with `.mobtrace/` so retained run
+artifacts stay local. If you write the config manually, add this entry yourself:
+
+```gitignore
+.mobtrace/
+```
+
 Configure an existing Maestro flow in `mobtrace.yaml`:
 
 ```yaml
