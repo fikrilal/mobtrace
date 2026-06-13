@@ -48,6 +48,8 @@ src/process/
   redaction.ts
 src/source/
   git.ts
+src/verify/
+  lifecycle.ts
 src/cli-error.ts
 src/cli.ts       executable entry point
 src/program.ts   Commander program construction
@@ -68,13 +70,15 @@ test/project-map.test.ts
 test/report-contract.test.ts
 test/run-id.test.ts
 test/source-git.test.ts
+test/verify-lifecycle.test.ts
 ```
 
 The current codebase implements the CLI foundation, public report schemas,
 artifact storage, strict project configuration loading, static command
 resolution, the `init`/`doctor` commands, and the product subprocess execution
 boundary, Git source evidence capture, and hook lifecycle execution. Do not
-create empty layers in anticipation of future milestones.
+create empty layers in anticipation of future milestones. The verify lifecycle
+orchestrator coordinates those foundations through injected runner behavior.
 
 ## Intended Boundaries
 

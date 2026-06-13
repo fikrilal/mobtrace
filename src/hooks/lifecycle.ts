@@ -61,6 +61,21 @@ export interface HookRunResult {
   readonly timedOut: boolean;
 }
 
+export interface HookExecutionInput {
+  readonly artifactStore: ArtifactStore;
+  readonly artifactsDir: string;
+  readonly baseEnvironment?: ReadonlyMap<string, string>;
+  readonly definition: HookDefinition;
+  readonly exportedEnvironment: ReadonlyMap<string, string>;
+  readonly flowName: string | null;
+  readonly flowPath: string;
+  readonly inheritedEnv?: NodeJS.ProcessEnv;
+  readonly journeyStatus: "failed" | "interrupted" | "not-run" | "passed";
+  readonly projectRoot: string;
+  readonly redactionValues?: readonly string[];
+  readonly runId: string;
+}
+
 export interface HookLifecycleResult {
   readonly exportedEnvironment: ReadonlyMap<string, string>;
   readonly failed: boolean;
@@ -92,7 +107,10 @@ export async function executeHookLifecycle(
     input.projectPrepare,
   );
   if (projectPrepare !== null) {
-    const result = await runHook(input, projectPrepare, exportedEnvironment);
+    const result = await executeHook({
+      ...hookExecutionContext(input, exportedEnvironment),
+      definition: projectPrepare,
+    });
     results.push(result);
     mergeExports(exportedEnvironment, result.exportedEnvironment);
     entered.project = true;
@@ -109,7 +127,10 @@ export async function executeHookLifecycle(
     input.flowPrepare,
   );
   if (flowPrepare !== null) {
-    const result = await runHook(input, flowPrepare, exportedEnvironment);
+    const result = await executeHook({
+      ...hookExecutionContext(input, exportedEnvironment),
+      definition: flowPrepare,
+    });
     results.push(result);
     mergeExports(exportedEnvironment, result.exportedEnvironment);
     entered.flow = true;
@@ -149,26 +170,32 @@ async function runCleanup(
     if (!entered[hook.scope]) {
       continue;
     }
-    results.push(await runHook(input, hook, exportedEnvironment));
+    results.push(
+      await executeHook({
+        ...hookExecutionContext(input, exportedEnvironment),
+        definition: hook,
+      }),
+    );
   }
 }
 
-async function runHook(
-  input: HookLifecycleInput,
-  definition: HookDefinition,
-  exportedEnvironment: ReadonlyMap<string, string>,
+export async function executeHook(
+  input: HookExecutionInput,
 ): Promise<HookRunResult> {
-  const outputDir = await temporaryHookDirectory(input.runId, definition.id);
+  const outputDir = await temporaryHookDirectory(
+    input.runId,
+    input.definition.id,
+  );
   await mkdir(outputDir, { mode: 0o700, recursive: true });
   const hookOutput = join(outputDir, "hook-output.json");
-  const [executable, ...args] = definition.hook.command;
+  const [executable, ...args] = input.definition.hook.command;
   const resolvedExecutable = resolveExecutable(
     input.projectRoot,
     executable ?? "",
   );
   const redactionValues = [
     ...(input.redactionValues ?? []),
-    ...exportedEnvironment.values(),
+    ...input.exportedEnvironment.values(),
   ];
   const result = await executeProcess({
     args,
@@ -176,14 +203,14 @@ async function runHook(
     env: {
       ...(input.inheritedEnv ?? process.env),
       ...Object.fromEntries(input.baseEnvironment ?? new Map()),
-      ...Object.fromEntries(exportedEnvironment),
+      ...Object.fromEntries(input.exportedEnvironment),
       MOBTRACE_ARTIFACTS_DIR: input.artifactsDir,
       MOBTRACE_FLOW_NAME: input.flowName ?? "",
       MOBTRACE_FLOW_PATH: input.flowPath,
       MOBTRACE_HOOK_OUTPUT: hookOutput,
-      MOBTRACE_HOOK_PHASE: definition.phase,
+      MOBTRACE_HOOK_PHASE: input.definition.phase,
       MOBTRACE_JOURNEY_STATUS:
-        definition.phase === "cleanup" ? input.journeyStatus : "",
+        input.definition.phase === "cleanup" ? input.journeyStatus : "",
       MOBTRACE_PROJECT_ROOT: input.projectRoot,
       MOBTRACE_RUN_ID: input.runId,
     },
@@ -192,13 +219,15 @@ async function runHook(
       values: redactionValues,
     },
     timeoutMs:
-      definition.hook.timeout === undefined
-        ? defaultTimeout(definition.phase)
-        : parseDuration(definition.hook.timeout).milliseconds,
+      input.definition.hook.timeout === undefined
+        ? defaultTimeout(input.definition.phase)
+        : parseDuration(input.definition.hook.timeout).milliseconds,
   });
 
   const exported =
-    definition.phase === "prepare" && result.exitCode === 0 && !result.timedOut
+    input.definition.phase === "prepare" &&
+    result.exitCode === 0 &&
+    !result.timedOut
       ? await readHookOutput(hookOutput)
       : new Map<string, string>();
   await rm(hookOutput, { force: true }).catch(() => undefined);
@@ -206,12 +235,12 @@ async function runHook(
 
   const stdoutPath = await input.artifactStore.writeText(
     input.runId,
-    `hooks/${definition.id}/stdout.log`,
+    `hooks/${input.definition.id}/stdout.log`,
     result.stdout,
   );
   const stderrPath = await input.artifactStore.writeText(
     input.runId,
-    `hooks/${definition.id}/stderr.log`,
+    `hooks/${input.definition.id}/stderr.log`,
     result.stderr,
   );
   const status =
@@ -224,9 +253,9 @@ async function runHook(
     error: result.error,
     exitCode: result.exitCode,
     exportedEnvironmentKeys: [...exported.keys()].sort(),
-    id: definition.id,
-    phase: definition.phase,
-    scope: definition.scope,
+    id: input.definition.id,
+    phase: input.definition.phase,
+    scope: input.definition.scope,
     startedAt: result.startedAt,
     status,
     stderr: stderrPath,
@@ -235,7 +264,7 @@ async function runHook(
   };
   const resultPath = await input.artifactStore.writeJson(
     input.runId,
-    `hooks/${definition.id}/result.json`,
+    `hooks/${input.definition.id}/result.json`,
     output,
   );
 
@@ -246,10 +275,10 @@ async function runHook(
     exitCode: result.exitCode,
     exportedEnvironment: exported,
     exportedEnvironmentKeys: output.exportedEnvironmentKeys,
-    id: definition.id,
-    phase: definition.phase,
+    id: input.definition.id,
+    phase: input.definition.phase,
     result: resultPath,
-    scope: definition.scope,
+    scope: input.definition.scope,
     startedAt: result.startedAt,
     status,
     stderr: stderrPath,
@@ -258,7 +287,7 @@ async function runHook(
   };
 }
 
-function hookDefinition(
+export function hookDefinition(
   id: HookId,
   phase: HookPhase,
   scope: HookScope,
@@ -285,6 +314,31 @@ function mergeExports(
   for (const [key, value] of source) {
     target.set(key, value);
   }
+}
+
+function hookExecutionContext(
+  input: HookLifecycleInput,
+  exportedEnvironment: ReadonlyMap<string, string>,
+): Omit<HookExecutionInput, "definition"> {
+  return {
+    artifactStore: input.artifactStore,
+    artifactsDir: input.artifactsDir,
+    exportedEnvironment,
+    flowName: input.flowName,
+    flowPath: input.flowPath,
+    journeyStatus: input.journeyStatus,
+    projectRoot: input.projectRoot,
+    runId: input.runId,
+    ...(input.baseEnvironment === undefined
+      ? {}
+      : { baseEnvironment: input.baseEnvironment }),
+    ...(input.inheritedEnv === undefined
+      ? {}
+      : { inheritedEnv: input.inheritedEnv }),
+    ...(input.redactionValues === undefined
+      ? {}
+      : { redactionValues: input.redactionValues }),
+  };
 }
 
 function resolveExecutable(projectRoot: string, executable: string): string {
