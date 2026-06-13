@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ArtifactStore } from "../artifacts/store.js";
 import type { FinalResult, FailureClass } from "../contracts/report.js";
 import type { NormalizedEvidence } from "../evidence/normalized.js";
+import type { DiagnosisContext } from "./context.js";
 
 const changedFileSchema = z.object({
   path: z.string().min(1),
@@ -31,6 +32,7 @@ export async function rankRetainedChanges(
   artifactStore: ArtifactStore,
   evidence: NormalizedEvidence,
   failureClass: FailureClass,
+  context?: DiagnosisContext,
 ): Promise<FinalResult["diagnosis"]["suspiciousChanges"]> {
   if (!evidence.source.available || failureClass === "none") {
     return [];
@@ -58,6 +60,7 @@ export async function rankRetainedChanges(
     diff,
     failedSelector: evidence.failure.failedSelector,
     failureClass,
+    ownership: context?.ownership ?? [],
   });
 }
 
@@ -66,6 +69,7 @@ export function rankSuspiciousChanges(input: {
   readonly diff: string;
   readonly failedSelector: string | null;
   readonly failureClass: FailureClass;
+  readonly ownership?: readonly string[];
 }): FinalResult["diagnosis"]["suspiciousChanges"] {
   const hunks = splitDiffByPath(input.diff);
   const candidates = input.changedFiles.map((file) => {
@@ -74,6 +78,7 @@ export function rankSuspiciousChanges(input: {
       content,
       failedSelector: input.failedSelector,
       failureClass: input.failureClass,
+      ownership: input.ownership ?? [],
       path: file.path,
     });
     return {
@@ -101,11 +106,26 @@ function reasonsFor(input: {
   readonly content: string;
   readonly failedSelector: string | null;
   readonly failureClass: FailureClass;
+  readonly ownership: readonly string[];
   readonly path: string;
 }): readonly RankingReason[] {
   const reasons: RankingReason[] = [];
   const lowerPath = input.path.toLowerCase();
   const lowerContent = input.content.toLowerCase();
+
+  if (
+    input.ownership.some((prefix) =>
+      input.path.startsWith(prefix.replaceAll("\\", "/")),
+    )
+  ) {
+    reasons.push(
+      reason(
+        "flow-ownership",
+        25,
+        "This changed file matches an ownership prefix declared by the flow.",
+      ),
+    );
+  }
 
   if (
     input.failureClass === "selector-mismatch" &&

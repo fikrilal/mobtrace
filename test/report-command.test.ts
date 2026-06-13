@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { ArtifactStore } from "../src/artifacts/store.js";
 import { MobtraceCommandError } from "../src/cli-error.js";
+import type { DiagnosisContext } from "../src/diagnosis/context.js";
 import {
   type NormalizedEvidence,
   normalizedEvidenceSchema,
@@ -199,10 +200,18 @@ async function createRetainedRun(
   await generateBaselineReports(
     store,
     evidence,
+    emptyContext,
     new Date("2026-06-12T11:00:00.000Z"),
   );
   return { directory: initialized.directory, runId: options.runId };
 }
+
+const emptyContext: DiagnosisContext = {
+  ownership: [],
+  ruleSetVersion: 1,
+  schemaVersion: 1,
+  signatures: [],
+};
 
 function retainedEvidence(options: {
   readonly completedAt: string;

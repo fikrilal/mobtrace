@@ -4,8 +4,8 @@ import {
   type FinalResult,
   finalResultSchema,
 } from "../contracts/report.js";
-import { classifyFailure } from "../diagnosis/classify.js";
-import { rankRetainedChanges } from "../diagnosis/rank.js";
+import type { DiagnosisContext } from "../diagnosis/context.js";
+import { diagnose } from "../diagnosis/diagnose.js";
 import type { NormalizedEvidence } from "../evidence/normalized.js";
 import { MOBTRACE_VERSION } from "../version.js";
 
@@ -20,10 +20,11 @@ export interface BaselineReportResult {
 export async function generateBaselineReports(
   artifactStore: ArtifactStore,
   evidence: NormalizedEvidence,
+  context: DiagnosisContext,
   now = new Date(),
 ): Promise<BaselineReportResult> {
   const generatedAt = now.toISOString();
-  const diagnosis = await baselineDiagnosis(artifactStore, evidence);
+  const diagnosis = await diagnose(artifactStore, evidence, context);
   const result = finalResultSchema.parse({
     schemaVersion: 1,
     runId: evidence.run.runId,
@@ -69,25 +70,6 @@ export async function generateBaselineReports(
     markdown,
     markdownPath,
     result,
-  };
-}
-
-async function baselineDiagnosis(
-  artifactStore: ArtifactStore,
-  evidence: NormalizedEvidence,
-): Promise<FinalResult["diagnosis"]> {
-  const classification = classifyFailure(evidence);
-
-  return {
-    failureClass: classification.failureClass,
-    failureDomain: classification.failureDomain,
-    matchedSignatures: [],
-    suspiciousChanges: await rankRetainedChanges(
-      artifactStore,
-      evidence,
-      classification.failureClass,
-    ),
-    suggestedAction: classification.suggestedAction,
   };
 }
 
@@ -215,6 +197,15 @@ function evidenceIndex(evidence: NormalizedEvidence): FinalResult["evidence"] {
       "evidence/normalized.json",
       "application/json",
       "Runner-independent lifecycle and journey facts.",
+      true,
+      false,
+    ),
+    evidenceRef(
+      "diagnosis-context",
+      "normalized-evidence",
+      "evidence/diagnosis-context.json",
+      "application/json",
+      "Non-sensitive deterministic diagnosis inputs.",
       true,
       false,
     ),

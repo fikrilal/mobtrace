@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { ArtifactStore } from "../src/artifacts/store.js";
+import type { DiagnosisContext } from "../src/diagnosis/context.js";
 import {
   type NormalizedEvidence,
   normalizedEvidenceSchema,
@@ -43,6 +44,7 @@ describe("baseline report generation", () => {
     const reports = await generateBaselineReports(
       store,
       evidence,
+      emptyContext,
       new Date("2026-06-12T10:05:00.000Z"),
     );
     const markdown = await readFile(
@@ -149,7 +151,11 @@ JSON: result.json
       },
     });
 
-    const reports = await generateBaselineReports(store, evidence);
+    const reports = await generateBaselineReports(
+      store,
+      evidence,
+      emptyContext,
+    );
 
     expect(reports.result).toMatchObject({
       exitCode,
@@ -240,3 +246,10 @@ function fixtureEvidence(): NormalizedEvidence {
     },
   });
 }
+
+const emptyContext: DiagnosisContext = {
+  ownership: [],
+  ruleSetVersion: 1,
+  schemaVersion: 1,
+  signatures: [],
+};

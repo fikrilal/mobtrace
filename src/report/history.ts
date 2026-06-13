@@ -9,6 +9,10 @@ import {
 } from "../artifacts/paths.js";
 import { finalResultSchema, runIdSchema } from "../contracts/report.js";
 import {
+  type DiagnosisContext,
+  diagnosisContextSchema,
+} from "../diagnosis/context.js";
+import {
   type NormalizedEvidence,
   normalizedEvidenceSchema,
 } from "../evidence/normalized.js";
@@ -77,12 +81,13 @@ export async function loadOrRegenerateReports(
   const normalized = normalizedEvidenceSchema.parse(
     await run.store.readJson(run.runId, "evidence/normalized.json"),
   );
+  const context = await readDiagnosisContext(run);
   const existing = await readFreshReports(run, normalized);
   if (existing !== null) {
     return existing;
   }
 
-  return generateBaselineReports(run.store, normalized);
+  return generateBaselineReports(run.store, normalized, context);
 }
 
 async function resolveLatestRun(
@@ -139,18 +144,26 @@ async function readFreshReports(
     run.directory,
     "evidence/normalized.json",
   );
+  const contextPath = resolveRunArtifactPath(
+    run.directory,
+    "evidence/diagnosis-context.json",
+  );
   const resultPath = resolveRunArtifactPath(run.directory, "result.json");
   const markdownPath = resolveRunArtifactPath(run.directory, "report.md");
 
   try {
-    const [normalizedStat, resultStat, markdownStat] = await Promise.all([
-      stat(normalizedPath),
-      stat(resultPath),
-      stat(markdownPath),
-    ]);
+    const [normalizedStat, contextStat, resultStat, markdownStat] =
+      await Promise.all([
+        stat(normalizedPath),
+        stat(contextPath).catch(() => normalizedStatFallback()),
+        stat(resultPath),
+        stat(markdownPath),
+      ]);
     if (
       resultStat.mtimeMs < normalizedStat.mtimeMs ||
-      markdownStat.mtimeMs < normalizedStat.mtimeMs
+      markdownStat.mtimeMs < normalizedStat.mtimeMs ||
+      resultStat.mtimeMs < contextStat.mtimeMs ||
+      markdownStat.mtimeMs < contextStat.mtimeMs
     ) {
       return null;
     }
@@ -175,6 +188,10 @@ async function readFreshReports(
   }
 }
 
+function normalizedStatFallback(): { readonly mtimeMs: number } {
+  return { mtimeMs: 0 };
+}
+
 async function requireManifest(
   store: ArtifactStore,
   runId: string,
@@ -185,6 +202,23 @@ async function requireManifest(
     throw new HistoricalReportError(
       error instanceof Error ? error.message : `Run was not found: ${runId}`,
     );
+  }
+}
+
+async function readDiagnosisContext(
+  run: ResolvedHistoricalRun,
+): Promise<DiagnosisContext> {
+  try {
+    return diagnosisContextSchema.parse(
+      await run.store.readJson(run.runId, "evidence/diagnosis-context.json"),
+    );
+  } catch (_error) {
+    return {
+      ownership: [],
+      ruleSetVersion: 1,
+      schemaVersion: 1,
+      signatures: [],
+    };
   }
 }
 
