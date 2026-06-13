@@ -285,6 +285,15 @@ function evidence(lifecycle: VerifyLifecycleResult): FinalResult["evidence"] {
 
   references.push(
     evidenceRef(
+      "normalized-evidence",
+      "normalized-evidence",
+      "evidence/normalized.json",
+      "application/json",
+      "Runner-independent lifecycle and journey facts.",
+      true,
+      false,
+    ),
+    evidenceRef(
       "human-report",
       "human-report",
       "report.md",

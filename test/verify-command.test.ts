@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { MobtraceCommandError } from "../src/cli-error.js";
+import { normalizedEvidenceSchema } from "../src/evidence/normalized.js";
 import { createProgram } from "../src/program.js";
 import { executeProcess } from "../src/process/execute.js";
 
@@ -149,7 +150,12 @@ describe("verify command", () => {
     const runDirectory = join(root, ".mobtrace/runs", runIds[0] ?? "");
     const machineReport = JSON.parse(
       await readFile(join(runDirectory, "result.json"), "utf8"),
-    ) as { exitCode: number; journey: { status: string }; status: string };
+    ) as {
+      evidence: Array<{ id: string; path: string }>;
+      exitCode: number;
+      journey: { status: string };
+      status: string;
+    };
     expect(machineReport).toMatchObject({
       exitCode: 0,
       journey: { status: "passed" },
@@ -158,6 +164,24 @@ describe("verify command", () => {
     expect(await readFile(join(runDirectory, "report.md"), "utf8")).toContain(
       "MobTrace Report",
     );
+    const normalized = normalizedEvidenceSchema.parse(
+      JSON.parse(
+        await readFile(join(runDirectory, "evidence/normalized.json"), "utf8"),
+      ),
+    );
+    expect(normalized).toMatchObject({
+      flow: { name: "login", runner: "maestro" },
+      journey: { status: "passed" },
+      run: { exitCode: 0, status: "passed" },
+    });
+    expect(machineReport).toMatchObject({
+      evidence: expect.arrayContaining([
+        expect.objectContaining({
+          id: "normalized-evidence",
+          path: "evidence/normalized.json",
+        }),
+      ]),
+    });
   });
 
   it("prints only JSON and preserves failing journey exit code", async () => {

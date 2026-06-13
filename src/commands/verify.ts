@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { ArtifactStore } from "../artifacts/store.js";
 import { MobtraceCommandError } from "../cli-error.js";
 import { loadConfiguration } from "../configuration/load.js";
+import { normalizeLifecycleEvidence } from "../evidence/normalized.js";
 import { generateInitialReports } from "../report/initial.js";
 import { MaestroRunner } from "../runner/maestro.js";
 import { runVerifyLifecycle } from "../verify/lifecycle.js";
@@ -37,10 +38,9 @@ export async function runVerifyCommand(
     ...(options.baseline === undefined ? {} : { baseline: options.baseline }),
     ...(options.device === undefined ? {} : { device: options.device }),
   });
-  const reports = await generateInitialReports(
-    new ArtifactStore(dirname(lifecycle.runDirectory)),
-    lifecycle,
-  );
+  const artifactStore = new ArtifactStore(dirname(lifecycle.runDirectory));
+  await normalizeLifecycleEvidence(artifactStore, lifecycle);
+  const reports = await generateInitialReports(artifactStore, lifecycle);
 
   io.stdout.write(
     options.json === true

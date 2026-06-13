@@ -41,6 +41,8 @@ src/configuration/
   schema.ts
 src/contracts/
   report.ts
+src/evidence/
+  normalized.ts
 src/hooks/
   lifecycle.ts
 src/process/
@@ -84,7 +86,8 @@ artifact storage, strict project configuration loading, static command
 resolution, the `init`/`doctor` commands, and the product subprocess execution
 boundary, Git source evidence capture, and hook lifecycle execution. Do not
 create empty layers in anticipation of future milestones. The verify lifecycle
-orchestrator coordinates those foundations through injected runner behavior.
+orchestrator coordinates those foundations through injected runner behavior,
+then persists runner-independent normalized evidence for reporting.
 
 ## Intended Boundaries
 
