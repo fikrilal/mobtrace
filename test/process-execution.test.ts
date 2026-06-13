@@ -96,6 +96,24 @@ describe("process execution", () => {
     expect(result.signal).not.toBeNull();
   });
 
+  it("terminates an active process when execution is interrupted", async () => {
+    const root = await createTempDir();
+    const executable = await createExecutable(root, "slow", "sleep 5");
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 20);
+
+    const result = await executeProcess({
+      abortSignal: controller.signal,
+      executable,
+      killAfterMs: 10,
+    });
+
+    expect(result.status).toBe("interrupted");
+    expect(result.interrupted).toBe(true);
+    expect(result.timedOut).toBe(false);
+    expect(result.signal).not.toBeNull();
+  });
+
   it("records signal termination", async () => {
     const root = await createTempDir();
     const executable = await createExecutable(

@@ -8,6 +8,7 @@ export interface ProcessCommandSummary {
 }
 
 export interface ProcessExecutionOptions {
+  readonly abortSignal?: AbortSignal;
   readonly args?: readonly string[];
   readonly cwd?: string;
   readonly env?: NodeJS.ProcessEnv;
@@ -29,7 +30,12 @@ export interface ProcessExecutionResult {
   readonly redactedStdout: string;
   readonly signal: NodeJS.Signals | null;
   readonly startedAt: string;
-  readonly status: "completed" | "failed-to-start" | "signaled" | "timed-out";
+  readonly status:
+    | "completed"
+    | "failed-to-start"
+    | "interrupted"
+    | "signaled"
+    | "timed-out";
   readonly stderr: string;
   readonly stderrBytes: number;
   readonly stderrTruncated: boolean;
@@ -37,6 +43,7 @@ export interface ProcessExecutionResult {
   readonly stdoutBytes: number;
   readonly stdoutTruncated: boolean;
   readonly timedOut: boolean;
+  readonly interrupted: boolean;
 }
 
 const DEFAULT_MAX_OUTPUT_BYTES = 10 * 1024 * 1024;
@@ -57,6 +64,7 @@ export async function executeProcess(
 
   return await new Promise<ProcessExecutionResult>((resolve) => {
     let settled = false;
+    let interrupted = false;
     let timedOut = false;
     let timeout: NodeJS.Timeout | undefined;
     let forceKillTimeout: NodeJS.Timeout | undefined;
@@ -80,6 +88,7 @@ export async function executeProcess(
       settled = true;
       clearTimeout(timeout);
       clearTimeout(forceKillTimeout);
+      options.abortSignal?.removeEventListener("abort", interrupt);
 
       const endedAtDate = new Date();
       const stdout = stdoutCapture.toString();
@@ -106,7 +115,12 @@ export async function executeProcess(
         redactedStdout: redactor.redact(stdout),
         signal: partial.signal,
         startedAt,
-        status: statusFor(partial.exitCode, partial.signal, timedOut),
+        status: statusFor(
+          partial.exitCode,
+          partial.signal,
+          timedOut,
+          interrupted,
+        ),
         stderr,
         stderrBytes: stderrCapture.totalBytes,
         stderrTruncated: stderrCapture.truncated,
@@ -114,7 +128,16 @@ export async function executeProcess(
         stdoutBytes: stdoutCapture.totalBytes,
         stdoutTruncated: stdoutCapture.truncated,
         timedOut,
+        interrupted,
       });
+    };
+
+    const interrupt = (): void => {
+      interrupted = true;
+      killChild(child.pid, "SIGTERM");
+      forceKillTimeout = setTimeout(() => {
+        killChild(child.pid, "SIGKILL");
+      }, options.killAfterMs ?? 1000);
     };
 
     child.stdout?.on("data", (chunk: Buffer) => {
@@ -139,6 +162,11 @@ export async function executeProcess(
         signal,
       });
     });
+
+    options.abortSignal?.addEventListener("abort", interrupt, { once: true });
+    if (options.abortSignal?.aborted === true) {
+      interrupt();
+    }
 
     if (options.timeoutMs !== undefined) {
       timeout = setTimeout(() => {
@@ -222,19 +250,30 @@ function killChild(pid: number | undefined, signal: NodeJS.Signals): void {
     return;
   }
 
-  if (process.platform === "win32") {
-    process.kill(pid, signal);
-    return;
-  }
+  try {
+    if (process.platform === "win32") {
+      process.kill(pid, signal);
+      return;
+    }
 
-  process.kill(-pid, signal);
+    process.kill(-pid, signal);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== "ESRCH") {
+      throw error;
+    }
+  }
 }
 
 function statusFor(
   exitCode: number | null,
   signal: NodeJS.Signals | null,
   timedOut: boolean,
+  interrupted: boolean,
 ): ProcessExecutionResult["status"] {
+  if (interrupted) {
+    return "interrupted";
+  }
   if (timedOut) {
     return "timed-out";
   }

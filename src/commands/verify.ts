@@ -28,11 +28,29 @@ export async function runVerifyCommand(
   options: VerifyCommandOptions,
   io: CommandIo,
 ): Promise<void> {
+  const interruption = new AbortController();
+  const interrupt = (): void => interruption.abort();
+  process.once("SIGINT", interrupt);
+  process.once("SIGTERM", interrupt);
+  try {
+    await executeVerify(options, io, interruption.signal);
+  } finally {
+    process.removeListener("SIGINT", interrupt);
+    process.removeListener("SIGTERM", interrupt);
+  }
+}
+
+async function executeVerify(
+  options: VerifyCommandOptions,
+  io: CommandIo,
+  abortSignal: AbortSignal,
+): Promise<void> {
   const { configuration, projectRoot } = await loadConfiguration({
     ...(options.config === undefined ? {} : { configPath: options.config }),
     ...(options.project === undefined ? {} : { projectPath: options.project }),
   });
   const lifecycle = await runVerifyLifecycle({
+    abortSignal,
     configuration,
     flow: options.flow,
     journeyRunner: new MaestroRunner(),

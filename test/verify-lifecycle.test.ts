@@ -78,6 +78,30 @@ function journey(status: "failed" | "passed"): JourneyRunner {
   };
 }
 
+function interruptedJourney(): JourneyRunner {
+  return {
+    async run(): Promise<JourneyExecutionResult> {
+      const now = new Date().toISOString();
+      return {
+        command: { arguments: ["test", "<flow>"], executable: "maestro" },
+        durationMs: 1,
+        endedAt: now,
+        error: {
+          code: "runner-interrupted",
+          message: "Journey was interrupted.",
+        },
+        exitCode: null,
+        result: "runner/result.json",
+        startedAt: now,
+        status: "interrupted",
+        stderr: "runner/stderr.log",
+        stdout: "runner/stdout.log",
+        timedOut: false,
+      };
+    },
+  };
+}
+
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories.splice(0).map(async (path) => {
@@ -175,6 +199,50 @@ flows:
 
     expect(result.exitCode).toBe(4);
     expect(result.outcome).toBe("cleanup-failed");
+  });
+
+  it("preserves a partial inspectable run and executes cleanup after interruption", async () => {
+    const root = await createProject();
+    const recorder = join(root, "cleanup.txt");
+    const cleanup = await createExecutable(
+      root,
+      "cleanup",
+      `printf "cleanup\\n" > "${recorder}"`,
+    );
+    await writeFile(
+      join(root, "mobtrace.yaml"),
+      `version: 1
+flows:
+  login:
+    path: .maestro/login.yaml
+    hooks:
+      cleanup:
+        command: ["${cleanup}"]
+`,
+      "utf8",
+    );
+    const configuration = await discoverConfiguration(root);
+
+    const result = await runVerifyLifecycle({
+      configuration,
+      flow: "login",
+      journeyRunner: interruptedJourney(),
+      projectRoot: root,
+    });
+    const manifest = JSON.parse(
+      await readFile(join(result.runDirectory, "run.json"), "utf8"),
+    ) as { state: string };
+
+    expect(result).toMatchObject({
+      exitCode: 130,
+      outcome: "interrupted",
+      status: "interrupted",
+    });
+    expect(result.phases).toContainEqual(
+      expect.objectContaining({ id: "journey", status: "interrupted" }),
+    );
+    expect(await readFile(recorder, "utf8")).toBe("cleanup\n");
+    expect(manifest.state).toBe("partial");
   });
 
   it("runs cleanup after preparation failure and skips the journey", async () => {

@@ -21,6 +21,7 @@ import {
 } from "../source/git.js";
 
 export interface JourneyExecutionInput {
+  readonly abortSignal?: AbortSignal;
   readonly artifactStore: ArtifactStore;
   readonly environment: ReadonlyMap<string, string>;
   readonly flow: ResolvedFlowInvocation;
@@ -54,6 +55,7 @@ export interface JourneyRunner {
 }
 
 export interface VerifyLifecycleInput {
+  readonly abortSignal?: AbortSignal;
   readonly artifactOverride?: string | undefined;
   readonly baseline?: string | undefined;
   readonly configuration: ConfigurationDiscovery;
@@ -254,6 +256,9 @@ export async function runVerifyLifecycle(
   }
 
   const journey = await input.journeyRunner.run({
+    ...(input.abortSignal === undefined
+      ? {}
+      : { abortSignal: input.abortSignal }),
     artifactStore,
     environment: new Map([...environment, ...exportedEnvironment]),
     flow,
@@ -379,7 +384,7 @@ async function finalizeLifecycle(input: {
   await input.artifactStore.updateManifest(input.runId, {
     phases: input.phases,
     sourceControl: input.source.available ? "git" : null,
-    state: "completed",
+    state: exit.status === "interrupted" ? "partial" : "completed",
   });
 
   return {
@@ -404,6 +409,9 @@ function classifyExit(
   readonly outcome: PrimaryOutcome;
   readonly status: OverallStatus;
 } {
+  if (journey.status === "interrupted") {
+    return { exitCode: 130, outcome: "interrupted", status: "interrupted" };
+  }
   if (journey.status === "failed") {
     return { exitCode: 1, outcome: "journey-failed", status: "failed" };
   }
@@ -442,6 +450,7 @@ function phaseBuilder(id: PhaseId): {
   fail(code: string, message: string, exitCode?: number | null): PhaseResult;
   pass(evidence?: readonly string[], exitCode?: number | null): PhaseResult;
   skip(reason: string): PhaseResult;
+  interrupt(code: string, message: string): PhaseResult;
 } {
   const startedAt = new Date();
   return {
@@ -452,6 +461,10 @@ function phaseBuilder(id: PhaseId): {
       }),
     pass: (evidence = [], exitCode = null) =>
       phaseResult(id, "passed", startedAt, { evidence, exitCode }),
+    interrupt: (code, message) =>
+      phaseResult(id, "interrupted", startedAt, {
+        error: { code, message },
+      }),
     skip: (reason) =>
       phaseResult(id, "skipped", startedAt, {
         error: { code: "not-applicable", message: reason },
@@ -516,6 +529,16 @@ function phaseFromJourney(journey: JourneyExecutionResult): PhaseResult {
       evidence: ["runner-result"],
       exitCode: journey.exitCode,
       timedOut: journey.timedOut,
+    });
+  }
+  if (journey.status === "interrupted") {
+    return phaseResult("journey", "interrupted", startedAt, {
+      error: journey.error ?? {
+        code: "runner-interrupted",
+        message: "Journey was interrupted.",
+      },
+      evidence: journey.result === null ? [] : ["runner-result"],
+      exitCode: journey.exitCode,
     });
   }
   return phaseResult("journey", "skipped", startedAt, {
