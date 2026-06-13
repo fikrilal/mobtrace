@@ -45,6 +45,7 @@ src/contracts/
 src/diagnosis/
   classify.ts
   facts.ts
+  rank.ts
 src/evidence/
   normalized.ts
 src/hooks/
@@ -74,6 +75,7 @@ test/artifact-paths.test.ts
 test/artifact-store.test.ts
 test/configuration.test.ts
 test/diagnosis-classification.test.ts
+test/diagnosis-ranking.test.ts
 test/hook-lifecycle.test.ts
 test/maestro-runner.test.ts
 test/package-smoke.test.ts

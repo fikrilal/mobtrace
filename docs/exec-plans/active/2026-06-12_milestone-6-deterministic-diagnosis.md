@@ -50,8 +50,8 @@ for diagnosis. Signature files are configured but not loaded.
 
 - [x] Commit 1: extract failure facts and classify failures.
 - [x] Commit 1: add fixture/table tests for initial classes and domains.
-- [ ] Commit 2: inspect diff hunks and rank suspicious changes.
-- [ ] Commit 2: add selector, route/session, API, fixture, and tie-break tests.
+- [x] Commit 2: inspect diff hunks and rank suspicious changes.
+- [x] Commit 2: add selector, route/session, API, fixture, and tie-break tests.
 - [ ] Commit 3: persist diagnosis context, apply ownership, and match built-in
       and project signatures.
 - [ ] Commit 3: encode at least three historical signatures.
@@ -78,6 +78,17 @@ Outcome after commit 1 implementation on 2026-06-12: passed.
 - lint passed
 - type check passed
 - 18 test files passed, 97 tests passed
+- build passed
+- project-map verification passed
+- package smoke verification passed
+- gate-honesty verification passed
+
+Outcome after commit 2 implementation on 2026-06-12: passed.
+
+- format check passed
+- lint passed
+- type check passed
+- 19 test files passed, 103 tests passed
 - build passed
 - project-map verification passed
 - package smoke verification passed

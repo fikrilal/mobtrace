@@ -5,6 +5,7 @@ import {
   finalResultSchema,
 } from "../contracts/report.js";
 import { classifyFailure } from "../diagnosis/classify.js";
+import { rankRetainedChanges } from "../diagnosis/rank.js";
 import type { NormalizedEvidence } from "../evidence/normalized.js";
 import { MOBTRACE_VERSION } from "../version.js";
 
@@ -22,6 +23,7 @@ export async function generateBaselineReports(
   now = new Date(),
 ): Promise<BaselineReportResult> {
   const generatedAt = now.toISOString();
+  const diagnosis = await baselineDiagnosis(artifactStore, evidence);
   const result = finalResultSchema.parse({
     schemaVersion: 1,
     runId: evidence.run.runId,
@@ -41,7 +43,7 @@ export async function generateBaselineReports(
     journey: evidence.journey,
     phases: evidence.phases,
     failure: evidence.failure,
-    diagnosis: baselineDiagnosis(evidence),
+    diagnosis,
     evidence: evidenceIndex(evidence),
     reports: {
       markdown: "report.md",
@@ -70,16 +72,21 @@ export async function generateBaselineReports(
   };
 }
 
-function baselineDiagnosis(
+async function baselineDiagnosis(
+  artifactStore: ArtifactStore,
   evidence: NormalizedEvidence,
-): FinalResult["diagnosis"] {
+): Promise<FinalResult["diagnosis"]> {
   const classification = classifyFailure(evidence);
 
   return {
     failureClass: classification.failureClass,
     failureDomain: classification.failureDomain,
     matchedSignatures: [],
-    suspiciousChanges: [],
+    suspiciousChanges: await rankRetainedChanges(
+      artifactStore,
+      evidence,
+      classification.failureClass,
+    ),
     suggestedAction: classification.suggestedAction,
   };
 }
