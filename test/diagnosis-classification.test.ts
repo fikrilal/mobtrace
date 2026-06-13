@@ -27,6 +27,14 @@ describe("failure classification", () => {
       label: "device unavailable",
     },
     {
+      expectedClass: "device-not-ready",
+      expectedDomain: "infrastructure",
+      evidence: evidence({
+        message: "Device emulator-5554 was requested, but it is not connected.",
+      }),
+      label: "device not connected",
+    },
+    {
       expectedClass: "runner-unavailable",
       expectedDomain: "infrastructure",
       evidence: evidence({ message: "Maestro not found: ENOENT" }),

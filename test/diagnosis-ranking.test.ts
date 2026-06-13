@@ -122,6 +122,18 @@ diff --git a/tool/cleanup_fixture.sh b/tool/cleanup_fixture.sh
     expect(result.map((entry) => entry.rank)).toEqual([1, 2, 3]);
   });
 
+  it("does not rank source files for device infrastructure failures", () => {
+    const result = rankSuspiciousChanges({
+      changedFiles: changedFiles(["lib/features/auth/login_page.dart"]),
+      diff: `diff --git a/lib/features/auth/login_page.dart b/lib/features/auth/login_page.dart
++const title = "Login";`,
+      failedSelector: null,
+      failureClass: "device-not-ready",
+    });
+
+    expect(result).toEqual([]);
+  });
+
   it("produces byte-equivalent rankings for repeated inputs", () => {
     const input = {
       changedFiles: changedFiles(["b.dart", "a.dart"]),

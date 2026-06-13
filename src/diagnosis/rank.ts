@@ -34,7 +34,11 @@ export async function rankRetainedChanges(
   failureClass: FailureClass,
   context?: DiagnosisContext,
 ): Promise<FinalResult["diagnosis"]["suspiciousChanges"]> {
-  if (!evidence.source.available || failureClass === "none") {
+  if (
+    !evidence.source.available ||
+    failureClass === "none" ||
+    sourceChangesAreNotActionable(failureClass)
+  ) {
     return [];
   }
 
@@ -64,6 +68,15 @@ export async function rankRetainedChanges(
   });
 }
 
+function sourceChangesAreNotActionable(failureClass: FailureClass): boolean {
+  return (
+    failureClass === "device-not-ready" ||
+    failureClass === "runner-unavailable" ||
+    failureClass === "runner-timeout" ||
+    failureClass === "runner-error"
+  );
+}
+
 export function rankSuspiciousChanges(input: {
   readonly changedFiles: readonly z.infer<typeof changedFileSchema>[];
   readonly diff: string;
@@ -71,6 +84,10 @@ export function rankSuspiciousChanges(input: {
   readonly failureClass: FailureClass;
   readonly ownership?: readonly string[];
 }): FinalResult["diagnosis"]["suspiciousChanges"] {
+  if (sourceChangesAreNotActionable(input.failureClass)) {
+    return [];
+  }
+
   const hunks = splitDiffByPath(input.diff);
   const candidates = input.changedFiles.map((file) => {
     const content = hunks.get(file.path) ?? "";

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join, relative, sep } from "node:path";
 
 import type { ArtifactStore } from "../artifacts/store.js";
 import { executeProcess } from "../process/execute.js";
@@ -71,6 +71,10 @@ export async function captureGitSourceEvidence(
   }
 
   const repositoryRoot = worktree.stdout.trim();
+  const excludedPrefixes = artifactPrefixes(
+    repositoryRoot,
+    options.artifactStore.artifactRoot,
+  );
   const head = await requiredGit(repositoryRoot, ["rev-parse", "HEAD"]);
   const baselineCommit = await requiredGit(repositoryRoot, [
     "rev-parse",
@@ -122,11 +126,11 @@ export async function captureGitSourceEvidence(
     ...stagedFiles,
     ...unstagedFiles,
     ...untrackedFiles,
-  ]);
+  ]).filter((file) => !isExcluded(file.path, excludedPrefixes));
   const diff = await buildDiff(
     repositoryRoot,
     baselineCommit.trim(),
-    untrackedFiles,
+    untrackedFiles.filter((file) => !isExcluded(file.path, excludedPrefixes)),
   );
 
   const metadata = {
@@ -172,6 +176,31 @@ export async function captureGitSourceEvidence(
     repositoryRoot,
     untrackedFileCount: untrackedFiles.length,
   };
+}
+
+function artifactPrefixes(
+  repositoryRoot: string,
+  artifactRoot: string,
+): readonly string[] {
+  const relativePath = relative(repositoryRoot, artifactRoot)
+    .split(sep)
+    .join("/");
+  if (
+    relativePath.length === 0 ||
+    relativePath === "." ||
+    relativePath.startsWith("../") ||
+    isAbsolute(relativePath)
+  ) {
+    return [];
+  }
+  return [`${relativePath.replace(/\/+$/u, "")}/`];
+}
+
+function isExcluded(
+  path: string,
+  excludedPrefixes: readonly string[],
+): boolean {
+  return excludedPrefixes.some((prefix) => path.startsWith(prefix));
 }
 
 async function buildDiff(

@@ -37,7 +37,12 @@ export function classifyFailure(
       "Inspect runner logs and verify the device and app reached a responsive state.",
     );
   }
-  if (matches(text, /device.*(?:offline|not ready|unavailable)|no devices?/u)) {
+  if (
+    matches(
+      text,
+      /device.*(?:offline|not ready|unavailable|not connected|disconnected)|not connected|no devices?/u,
+    )
+  ) {
     return classification(
       "device-not-ready",
       "infrastructure",

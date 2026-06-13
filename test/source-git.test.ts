@@ -84,6 +84,11 @@ describe("Git source evidence", () => {
       flowResolution: "path",
       runId: "20260612T000000Z-a00002",
     });
+    await writeFile(
+      join(root, ".mobtrace/runs/20260612T000000Z-a00002/self.txt"),
+      "self noise\n",
+      "utf8",
+    );
 
     const result = await captureGitSourceEvidence({
       artifactStore: store,
@@ -127,10 +132,18 @@ describe("Git source evidence", () => {
         expect.objectContaining({ path: "untracked.txt", status: "untracked" }),
       ]),
     );
+    expect(changedFiles).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ".mobtrace/runs/20260612T000000Z-a00002/self.txt",
+        }),
+      ]),
+    );
     expect(diff).toContain("# mobtrace-diff-section: baseline-to-head");
     expect(diff).toContain("# mobtrace-diff-section: staged");
     expect(diff).toContain("# mobtrace-diff-section: unstaged");
     expect(diff).toContain("# mobtrace-diff-section: untracked");
     expect(diff).toContain("untracked.txt");
+    expect(diff).not.toContain("self.txt");
   });
 });
