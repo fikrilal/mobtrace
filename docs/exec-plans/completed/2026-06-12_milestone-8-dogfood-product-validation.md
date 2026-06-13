@@ -2,7 +2,7 @@
 
 Date: 2026-06-12
 Owner: Codex
-Status: Active
+Status: Completed
 Risk class: medium
 Related issue/PR: N/A
 
@@ -56,13 +56,13 @@ than the current usable CLI.
 
 ## Implementation Checklist
 
-- [ ] Add standalone validation fixture and end-to-end product tests.
-- [ ] Record product validation metrics and scenario outcomes.
-- [ ] Add `mobile-core-kit` reference integration documentation.
-- [ ] Update README first-run documentation.
-- [ ] Add public v0.1 release checklist.
-- [ ] Run targeted validation tests and `npm run verify:full`.
-- [ ] Move this plan to `docs/exec-plans/completed/`.
+- [x] Add standalone validation fixture and end-to-end product tests.
+- [x] Record product validation metrics and scenario outcomes.
+- [x] Add `mobile-core-kit` reference integration documentation.
+- [x] Update README first-run documentation.
+- [x] Add public v0.1 release checklist.
+- [x] Run targeted validation tests and `npm run verify:full`.
+- [x] Move this plan to `docs/exec-plans/completed/`.
 
 ## Decision Log
 
@@ -73,21 +73,32 @@ than the current usable CLI.
 
 ## Verification
 
-Planned checks:
+Completed checks:
 
 ```bash
 npm test -- test/product-validation.test.ts
 npm run verify:full
 ```
 
-Record checks not run and why.
+Results:
+
+- `npm test -- test/product-validation.test.ts`: passed, 2 tests.
+- `npm run verify:full`: passed on 2026-06-12.
+
+The full gate completed formatting, lint, typecheck, 128 tests across 23 test
+files, build, project-map verification, package smoke, and gate-honesty checks.
 
 ## Runtime Evidence
 
-- Environment: pending.
-- Executed scenario: pending.
-- Artifact paths: pending.
-- Notes: pending.
+- Environment: Linux local development host, Node.js 22 baseline.
+- Executed scenario: standalone validation fixture covering pass, selector
+  mismatch, app navigation failure, backend HTTP failure, offline device,
+  preparation failure, cleanup failure after pass, cleanup failure after
+  failed journey, interrupted journey, and report regeneration.
+- Artifact paths: validation tests used isolated temporary project copies and
+  removed generated artifacts after assertions.
+- Notes: `docs/engineering/product-validation.md` records measured scenario
+  outcomes and kill-criteria evaluation.
 
 ## Risks And Mitigations
 
@@ -101,8 +112,12 @@ Record checks not run and why.
 
 ## Completion Notes
 
-Pending.
+Milestone 8 shipped a deterministic standalone validation fixture, end-to-end
+product validation tests, product metrics, `mobile-core-kit` reference
+integration guidance, updated first-run README content, and a public v0.1
+release checklist. The measured fixture supports continuing toward v0.1 while
+tracking one compound-failure diagnosis improvement.
 
 ## Follow-Ups
 
-- [ ] Add unresolved debt to `docs/exec-plans/tech-debt-tracker.md` if needed.
+- [x] Add unresolved debt to `docs/exec-plans/tech-debt-tracker.md` if needed.
